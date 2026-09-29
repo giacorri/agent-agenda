@@ -1,0 +1,28 @@
+services:
+  backend:
+    build: ./backend
+    container_name: agent-agenda-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4010:4000"
+    volumes:
+      - ./data:/data:rw
+    environment:
+      - PORT=4000
+      - DB_PATH=/data/tasks.db
+      # Set TZ to your timezone so reminders fire at the right wall-clock time.
+      - TZ=${TZ:-UTC}
+      - NATIVE_NOTIFY=${NATIVE_NOTIFY:-0}
+      # Comma-separated allowlist of browser origins (or '*'). Defaults to this
+      # compose's own frontend, also as agenda.localhost (a name of its own keeps the
+      # password manager from mixing it up with other localhost apps); add
+      # http://localhost:3000 for `bun run dev`.
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:4011,http://127.0.0.1:4011,http://agenda.localhost:4011}
+
+  frontend:
+    build: ./frontend
+    container_name: agent-agenda-frontend
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "127.0.0.1:4011:3000"
