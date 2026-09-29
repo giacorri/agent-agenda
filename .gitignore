@@ -1,0 +1,35 @@
+node_modules/
+**/node_modules/
+.svelte-kit/
+build/
+dist/
+.DS_Store
+
+# Runtime data: the SQLite database lives here (Docker Compose creates the dir).
+data/
+
+# Databases anywhere (seed/demo + local runtime DBs)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Paraglide generated i18n output
+frontend/src/lib/paraglide/
+
+# Local environment overrides
+.env
+.env.*
+
+# Agent worktrees (transient)
+.claude/worktrees/
+
+# Playwright scratch output (snapshots/screenshots from local UI checks)
+.playwright-mcp/
+**/.playwright-mcp/
+test-results/
+
+# Local scope icons (user config assets, not shipped)
+frontend/static/scope-*.png

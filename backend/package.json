@@ -1,0 +1,24 @@
+{
+  "name": "agent-agenda-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend for agent-agenda: a self-hosted agenda your coding agent writes to and you review (Bun + bun:sqlite, HTTP + WebSocket).",
+  "license": "MIT",
+  "author": "Giacomo Penco Salvi",
+  "repository": { "type": "git", "url": "https://github.com/giacorri/agent-agenda.git" },
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts",
+    "seed": "bun run src/seed.ts",
+    "seed:study": "bun run src/seed-study.ts",
+    "test": "TZ=Europe/Rome bun test"
+  },
+  "dependencies": {
+    "chrono-node": "^2.7.7",
+    "ulid": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.6.0"
+  }
+}

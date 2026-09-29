@@ -1,0 +1,31 @@
+{
+  "scopes": [
+    { "key": "work", "label": "Work", "tag": "", "sort": 0, "icon": "gear" },
+    { "key": "personal", "label": "Personal", "tag": "personal", "sort": 1, "icon": "rocket" }
+  ],
+  "categories": [
+    { "key": "backend", "label": "Backend", "icon": "server", "color": "#4f8cff", "kind": "service", "sort": 0 },
+    { "key": "frontend", "label": "Frontend", "icon": "monitor", "color": "#21c08b", "kind": "service", "sort": 1 },
+    { "key": "infra", "label": "Infra", "icon": "cloud", "color": "#b07cff", "kind": "service", "sort": 2 },
+    { "key": "docs", "label": "Docs", "icon": "book", "color": "#f5a623", "kind": "service", "sort": 3 },
+    { "key": "home", "label": "Home", "icon": "wrench", "color": "#ff6b6b", "kind": "app", "sort": 4 },
+    { "key": "fitness", "label": "Fitness", "icon": "spark", "color": "#00c2d1", "kind": "app", "sort": 5 }
+  ],
+  "people": [
+    { "key": "alex", "label": "Alex", "role": "Engineering manager", "sort": 0 },
+    { "key": "sam", "label": "Sam", "role": "Product", "sort": 1 },
+    { "key": "jordan", "label": "Jordan", "role": "Support", "sort": 2 }
+  ],
+  "clients": [
+    { "key": "northwind", "label": "Northwind", "sort": 0 },
+    { "key": "globex", "label": "Globex", "sort": 1 }
+  ],
+  "refs": [
+    { "shorthand": "web", "owner_repo": "acme/web-app", "host": "github.com" },
+    { "shorthand": "api", "owner_repo": "acme/api-service", "host": "github.com" }
+  ],
+  "settings": {
+    "default_remind_time": "09:30",
+    "default_remind_before_min": "0"
+  }
+}
