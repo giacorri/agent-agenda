@@ -25,6 +25,7 @@ helpers=(
   list-tasks.sh
   show-task.sh
   done-task.sh
+  set-status.sh
   snooze-task.sh
   config-status.sh
   set-settings.sh

@@ -4,7 +4,7 @@
 # Usage:
 #   set-title <task-id|match> "New title"
 #
-# <match> = a ULID id, or a substring of a PENDING task's title/tag/service (oldest due
+# <match> = a ULID id, or a substring of an OPEN task's title/tag/service (oldest due
 # wins, same rule as done-task.sh). Only the title changes; every other field is left as
 # is. PATCHes the task and prints the updated JSON. For the summary use PATCH directly.
 
@@ -31,13 +31,13 @@ if [[ -z "$match" || -z "$title" ]]; then
 fi
 
 # Resolve <match> to a task id. A ULID is "01"-prefixed and 26 chars; anything else is a
-# substring matched against pending tasks (earliest due first), mirroring done-task.sh.
+# substring matched against open tasks (earliest due first), mirroring done-task.sh.
 # Pending-only match: pass the ULID id to rename a snoozed / in_progress task.
 resolve_id() {
   local m="$1"
   if [[ "$m" == 01* && ${#m} -eq 26 ]]; then printf '%s' "$m"; return 0; fi
   local resp code body
-  resp=$(curl -sS -w "\n%{http_code}" "$AGENDA_URL/api/tasks?status=pending")
+  resp=$(curl -sS -w "\n%{http_code}" "$AGENDA_URL/api/tasks?status=all")
   code=$(printf '%s' "$resp" | tail -n1)
   body=$(printf '%s' "$resp" | sed '$d')
   [[ "$code" == "200" ]] || { echo "could not list tasks ($code): $body" >&2; return 1; }
@@ -45,6 +45,7 @@ resolve_id() {
 import json, os, sys
 m = os.environ["MATCH"].lower()
 for t in json.load(sys.stdin):  # already ordered by due_at ASC
+    if t.get("status") not in ("pending", "in_progress", "snoozed"): continue
     hay = [t.get("title","")] + t.get("tags",[]) + t.get("services",[])
     if any(m in (h or "").lower() for h in hay):
         print(t["id"]); break
@@ -53,7 +54,7 @@ for t in json.load(sys.stdin):  # already ordered by due_at ASC
 
 id=$(resolve_id "$match")
 if [[ -z "$id" ]]; then
-  echo "no pending task matched \"$match\"" >&2
+  echo "no open task matched \"$match\"" >&2
   exit 1
 fi
 

@@ -4,7 +4,7 @@
 # Usage:
 #   snooze-task <task-id|match> <until>
 #
-# <match> = a ULID id, or a substring of a PENDING task's title/tag/service (earliest due wins,
+# <match> = a ULID id, or a substring of an OPEN task's title/tag/service (earliest due wins,
 # same rule as add-note.sh).
 # <until> = one of: 10m | 1h | tomorrow | 1w | an ISO timestamp (e.g. 2025-01-31T09:30:00Z).
 #   10m / 1h     → that long after the task's current due time.
@@ -36,12 +36,12 @@ if [[ -z "$match" || -z "$until" ]]; then
 fi
 
 # Resolve <match> to a task id. A ULID is "01"-prefixed and 26 chars; anything else is treated
-# as a substring matched against pending tasks (earliest due first), mirroring findTaskByMatch.
+# as a substring matched against open tasks (earliest due first), mirroring findTaskByMatch.
 resolve_id() {
   local m="$1"
   if [[ "$m" == 01* && ${#m} -eq 26 ]]; then printf '%s' "$m"; return 0; fi
   local resp code body
-  resp=$(curl -sS -w "\n%{http_code}" "$AGENDA_URL/api/tasks?status=pending")
+  resp=$(curl -sS -w "\n%{http_code}" "$AGENDA_URL/api/tasks?status=all")
   code=$(printf '%s' "$resp" | tail -n1)
   body=$(printf '%s' "$resp" | sed '$d')
   [[ "$code" == "200" ]] || { echo "could not list tasks ($code): $body" >&2; return 1; }
@@ -49,6 +49,7 @@ resolve_id() {
 import json, os, sys
 m = os.environ["MATCH"].lower()
 for t in json.load(sys.stdin):  # already ordered by due_at ASC
+    if t.get("status") not in ("pending", "in_progress", "snoozed"): continue
     hay = [t.get("title","")] + t.get("tags",[]) + t.get("services",[])
     if any(m in (h or "").lower() for h in hay):
         print(t["id"]); break
@@ -57,7 +58,7 @@ for t in json.load(sys.stdin):  # already ordered by due_at ASC
 
 id=$(resolve_id "$match")
 if [[ -z "$id" ]]; then
-  echo "no pending task matched \"$match\"" >&2
+  echo "no open task matched \"$match\"" >&2
   exit 1
 fi
 

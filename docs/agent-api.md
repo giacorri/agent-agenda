@@ -310,7 +310,8 @@ snooze-task.sh <id|match> 2026-10-05T09:30:00Z
 Accepted fields: `title`, `summary`, `due_at`, `remind_at` (ISO or `""`), `status`,
 `priority`, `tags`, `services`, `steps`, `requester`, `client`, `closing`,
 `completed_at`. Wrongly typed values return `400`. Script for the title:
-`set-title.sh <id|match> "New title"`.
+`set-title.sh <id|match> "New title"`; for the status:
+`set-status.sh <id|match> in_progress` (agents set it when work on a task starts).
 
 ```bash
 curl -s -X PATCH "$AGENDA_URL/api/tasks/<id>" \
@@ -411,7 +412,8 @@ config-status.sh                                  # 0 configured · 3 first run 
 list-tasks.sh --status pending
 show-task.sh <id>                                 # notes = past, steps = future
 
-# 3. Start: note that you picked it up, post the plan.
+# 3. Start: mark it in progress, note that you picked it up, post the plan.
+set-status.sh <id> in_progress
 add-note.sh <id> --body "Started: triage the import. [skill: add-to-agenda]"
 set-steps.sh <id> --step "Reproduce" --step "Fix" --step "Reply"
 

@@ -46,6 +46,9 @@ Do it the same turn the milestone happens — not at end of task, not at end of
 session. Do NOT create a duplicate task; if the topic is already on the agenda,
 note it.
 
+A milestone means the task is being worked: if it is still `pending`, also run
+`set-status.sh <id> in_progress` (leave `done`, `snoozed` and `shelved` alone).
+
 ## The golden rule: each note stands ALONE
 
 Before writing, test: *if someone reads only this note — no chat, no other notes,

@@ -130,6 +130,11 @@ The safe sequence is:
 2. `list-tasks.sh` or filtered search
 3. `show-task.sh <id>`
 4. Summarize past notes and remaining steps
-5. Continue the work and write milestones back as they happen
+5. When you actually start working on it (not when you only read or summarize it),
+   mark it `set-status.sh <id> in_progress` if it is still `pending`
+6. Continue the work and write milestones back as they happen
+
+If work stops with the task waiting on someone else, leave it `in_progress`; put it
+back to `pending` only when nobody is working on it anymore.
 
 The agenda is the source of truth for tracked state; chat history is secondary.

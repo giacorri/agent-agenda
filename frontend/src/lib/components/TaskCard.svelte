@@ -241,7 +241,7 @@
       <Icon name="lock" size={12} /> {m.tc_blocked()}: {blockedBy.map((b) => b.title).join(', ')}
     </div>
   {/if}
-  <div class="body">
+  <div class="body" class:has-note={!!lastNote}>
   {#if task.summary}<div class="summary md">{@html renderMarkdown(task.summary, repo, $config)}</div>{/if}
   {#if lastNote}
     <div class="laststep">
@@ -444,6 +444,8 @@
   .cell.peek:not(.expanded) .next,
   .cell.peek:not(.expanded) .rel-chip,
   .cell.peek:not(.expanded) .blocked-tag { display: none; }
+  /* Without a note the peek would be empty: fall back to a short description. */
+  .cell.peek:not(.expanded) .body:not(.has-note) .summary { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; }
   /* Nobody clicks while scrolling past: the preview drops every button (delete, copy,
      done, snooze) and the room reserved for them; they appear once the card expands. */
   .cell.peek:not(.expanded) :is(.del, .copy-title, .act-done, .snooze-wrap) { display: none; }
