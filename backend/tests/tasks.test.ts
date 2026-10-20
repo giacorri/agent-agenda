@@ -189,3 +189,22 @@ test('marking a prerequisite done re-broadcasts the dependent', async () => {
   });
   expect(seen).toContain('X');
 });
+
+test('POST /api/tasks stores tagged people, trimmed and de-duplicated', async () => {
+  const res = await call('POST', '/api/tasks', { title: 'fix', people: [' alex', 'Alex', '', 'sam'] });
+  expect(res.status).toBe(201);
+  const body = await res.json();
+  expect(body.people).toEqual(['alex', 'sam']);
+  expect(getTask(db, body.id)?.people).toEqual(['alex', 'sam']);
+});
+
+test('PATCH people replaces the list; a non-array is rejected', async () => {
+  insertTask(db, sample());
+  expect(getTask(db, 'T1')?.people).toEqual([]);
+  const ok = await call('PATCH', '/api/tasks/T1', { people: ['jordan', 'Maria Rossi'] });
+  expect(ok.status).toBe(200);
+  expect((await ok.json()).people).toEqual(['jordan', 'Maria Rossi']);
+  const bad = await call('PATCH', '/api/tasks/T1', { people: 'jordan' });
+  expect(bad.status).toBe(400);
+  expect(getTask(db, 'T1')?.people).toEqual(['jordan', 'Maria Rossi']);
+});

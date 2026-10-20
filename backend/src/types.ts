@@ -53,6 +53,9 @@ export interface Task {
   // The client/company the task is for (work only). null = no client. Free text;
   // a configured client (see config) drives the sidebar row and the /client page.
   client: string | null;
+  // People tagged on the task besides the requester (involved, to inform, …). Free
+  // text like `requester`; entries matching a configured person get its avatar.
+  people: string[];
   // The closing handoff message for the requester, written when the work concludes. Markdown.
   // Saved by the handoff-recap skill; shown as the Closing section in the drawer.
   closing: string | null;
@@ -91,6 +94,7 @@ export interface IngestPayload {
   tags?: string[];
   priority?: number;
   requester?: string;
+  people?: string[];
   client?: string;
   closing?: string;
   agent_session?: string;

@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS tasks (
   created_at    TEXT NOT NULL,
   completed_at  TEXT,
   notified_at   TEXT,
-  steps         TEXT NOT NULL DEFAULT '[]'
+  steps         TEXT NOT NULL DEFAULT '[]',
+  people        TEXT NOT NULL DEFAULT '[]'
 );
 CREATE INDEX IF NOT EXISTS idx_tasks_due_at ON tasks(due_at);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
@@ -75,6 +76,9 @@ function migrate(db: Database) {
   }
   if (!names.has('client')) {
     db.run("ALTER TABLE tasks ADD COLUMN client TEXT");
+  }
+  if (!names.has('people')) {
+    db.run("ALTER TABLE tasks ADD COLUMN people TEXT NOT NULL DEFAULT '[]'");
   }
   // 'missed' is no longer a status — it's computed from due_at. Reopen any legacy missed rows.
   db.run("UPDATE tasks SET status = 'pending' WHERE status = 'missed'");
@@ -164,6 +168,7 @@ type Row = {
   agent_session: string | null; agent_cwd: string | null;
   created_at: string; completed_at: string | null; notified_at: string | null;
   steps: string;
+  people: string;
 };
 
 const rowToTask = (r: Row): Task => ({
@@ -171,21 +176,22 @@ const rowToTask = (r: Row): Task => ({
   tags: JSON.parse(r.tags),
   services: JSON.parse(r.services ?? '[]'),
   steps: JSON.parse(r.steps ?? '[]'),
+  people: JSON.parse(r.people ?? '[]'),
 });
 
 // Every task SELECT shares this column list so rowToTask always gets `steps`.
 const TASK_COLS =
-  'id,title,summary,due_at,remind_at,status,priority,tags,services,source,requester,client,closing,agent_session,agent_cwd,created_at,completed_at,notified_at,steps';
+  'id,title,summary,due_at,remind_at,status,priority,tags,services,source,requester,client,closing,agent_session,agent_cwd,created_at,completed_at,notified_at,steps,people';
 
 export function insertTask(db: Database, t: Task): void {
   db.run(
     `INSERT INTO tasks (id,title,summary,due_at,remind_at,status,priority,tags,services,source,
-                        requester,client,closing,agent_session,agent_cwd,created_at,completed_at,notified_at,steps)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+                        requester,client,closing,agent_session,agent_cwd,created_at,completed_at,notified_at,steps,people)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [t.id, t.title, t.summary, t.due_at, t.remind_at, t.status, t.priority,
      JSON.stringify(t.tags), JSON.stringify(t.services ?? []),
      t.source, t.requester ?? null, t.client ?? null, t.closing ?? null, t.agent_session, t.agent_cwd,
-     t.created_at, t.completed_at, t.notified_at, JSON.stringify(t.steps ?? [])]
+     t.created_at, t.completed_at, t.notified_at, JSON.stringify(t.steps ?? []), JSON.stringify(t.people ?? [])]
   );
 }
 
@@ -265,9 +271,9 @@ export function listTasks(db: Database, f: ListFilter = {}): Task[] {
 
 const UPDATABLE = new Set([
   'title','summary','due_at','remind_at','status','priority','tags','services',
-  'requester','client','closing','completed_at','notified_at','steps'
+  'requester','client','closing','completed_at','notified_at','steps','people'
 ]);
-const JSON_COLS = new Set(['tags','services','steps']);
+const JSON_COLS = new Set(['tags','services','steps','people']);
 
 export function updateTask(db: Database, id: string, patch: Partial<Task>): void {
   const sets: string[] = [];

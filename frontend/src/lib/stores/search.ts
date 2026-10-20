@@ -22,7 +22,7 @@ export const searchActive = derived(searchTerms, ($t) => $t.length > 0);
 function build(t: Task, c: ConfigBundle): string {
   const parts: (string | null | undefined)[] = [
     t.title, t.summary, t.requester, t.client, t.closing, t.id, t.status,
-    ...(t.tags ?? []), ...(t.services ?? []), ...(t.steps ?? []),
+    ...(t.tags ?? []), ...(t.services ?? []), ...(t.steps ?? []), ...(t.people ?? []),
     t.last_note?.body,
   ];
   for (const s of t.services ?? []) {

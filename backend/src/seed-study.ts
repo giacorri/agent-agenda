@@ -157,6 +157,7 @@ export function seedStudy(path: string = DB_PATH): { subjects: number; topics: n
         tags: ['study'],
         source: 'agent',
         requester: null,
+        people: [],
         client: null,
         closing: null,
         agent_session: null,

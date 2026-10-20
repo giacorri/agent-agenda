@@ -28,6 +28,18 @@ async function readJson(req: Request): Promise<unknown> {
 
 const VALID_STATUS = new Set<TaskStatus>(['pending', 'in_progress', 'done', 'snoozed', 'shelved']);
 const isStrArray = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === 'string');
+// Trim, drop blanks and case-insensitive duplicates, keeping the first spelling.
+export function cleanPeople(list: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of list) {
+    const p = raw.trim();
+    if (!p || seen.has(p.toLowerCase())) continue;
+    seen.add(p.toLowerCase());
+    out.push(p);
+  }
+  return out;
+}
 const isIso = (v: unknown): v is string => typeof v === 'string' && !Number.isNaN(Date.parse(v));
 
 // Whitelist + type-check the fields a client may PATCH, so bad values (an invalid
@@ -47,6 +59,7 @@ function coercePatch(raw: unknown): { patch: Partial<Task> } | { error: string }
   if ('tags' in r) { if (!isStrArray(r.tags)) return { error: 'tags must be a string array' }; patch.tags = r.tags; }
   if ('services' in r) { if (!isStrArray(r.services)) return { error: 'services must be a string array' }; patch.services = r.services; }
   if ('steps' in r) { if (!isStrArray(r.steps)) return { error: 'steps must be a string array' }; patch.steps = r.steps; }
+  if ('people' in r) { if (!isStrArray(r.people)) return { error: 'people must be a string array' }; patch.people = cleanPeople(r.people); }
   if ('requester' in r) { if (r.requester !== null && typeof r.requester !== 'string') return { error: 'requester must be string or null' }; patch.requester = r.requester as string | null; }
   if ('client' in r) { if (r.client !== null && typeof r.client !== 'string') return { error: 'client must be string or null' }; patch.client = r.client as string | null; }
   if ('closing' in r) { if (r.closing !== null && typeof r.closing !== 'string') return { error: 'closing must be string or null' }; patch.closing = r.closing as string | null; }
@@ -102,6 +115,7 @@ export async function handleTasksRequest(
       tags: norm.tags,
       source: body.source ?? 'user',
       requester: body.requester ?? null,
+      people: isStrArray(body.people) ? cleanPeople(body.people) : [],
       client: norm.client,
       closing: body.closing ?? null,
       agent_session: body.agent_session ?? null,

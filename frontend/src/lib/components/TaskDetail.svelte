@@ -18,6 +18,7 @@
   import ScopeIcon from './ScopeIcon.svelte';
   import PersonAvatar from './PersonAvatar.svelte';
   import ClientLogo from './ClientLogo.svelte';
+  import PeopleStack from './PeopleStack.svelte';
   import TaskCard from './TaskCard.svelte';
   import type { Task, TaskWithNotes, Note } from '$lib/types';
 
@@ -58,6 +59,8 @@
   let tagsDraft = $state('');
   let reqDraft = $state('');
   let clientDraft = $state('');
+  let peopleDraft = $state<string[]>([]);
+  let personInput = $state('');
   let closingDraft = $state('');
   let personalDraft = $state(false);  // work/personal is only switchable in edit mode
   // Configured people drive the closing-message register (see the handoff-recap skill).
@@ -73,6 +76,12 @@
     if (!key) return;
     try { await api.savePerson({ key, label: key, role: '', sort: $people.length }); }
     catch (err) { error = String(err); }
+  }
+
+  function addPerson(name: string) {
+    const p = name.trim();
+    if (p && !peopleDraft.some((x) => x.toLowerCase() === p.toLowerCase())) peopleDraft = [...peopleDraft, p];
+    personInput = '';
   }
 
   // Same roster logic for clients: an unconfigured one never reaches the sidebar,
@@ -331,6 +340,8 @@
     tagsDraft = task.tags.filter(t => !ht || t.toLowerCase() !== ht).join(' ');
     reqDraft = task.requester ?? '';
     clientDraft = task.client ?? '';
+    peopleDraft = [...(task.people ?? [])];
+    personInput = '';
     closingDraft = task.closing ?? '';
     personalDraft = isHidden(task, $config);
     editingIssue = true;
@@ -366,6 +377,9 @@
 
     patch.requester = reqDraft.trim() || null;
     patch.client = clientDraft.trim() || null;
+    // A name typed but not yet confirmed with Enter still counts on save.
+    if (personInput.trim()) addPerson(personInput);
+    patch.people = peopleDraft;
     patch.closing = closingDraft.trim() || null;
 
     editingIssue = false;
@@ -561,6 +575,27 @@
               {/if}
             {/if}
           </div>
+          {/if}
+          {#if editingIssue || task.people?.length}
+            <div class="req-row">
+              <b>{m.td_people()}</b>:
+              {#if editingIssue}
+                {#each peopleDraft as name (name)}
+                  {@const who = personFor(name, $config)}
+                  <span class="person-chip"><PersonAvatar photo={who?.photo} size={18} alt={who?.label ?? name} />{who?.label ?? name}
+                    <button type="button" class="chip-x" aria-label={m.td_remove_person({ name: who?.label ?? name })} title={m.td_remove_person({ name: who?.label ?? name })}
+                      onclick={() => (peopleDraft = peopleDraft.filter((x) => x !== name))}><Icon name="close" size={11} /></button>
+                  </span>
+                {/each}
+                <input class="req-edit" list="known-people" bind:value={personInput} placeholder={m.td_people_placeholder()}
+                  onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addPerson(personInput); } if (e.key === 'Escape') { cancelEditIssue(); e.stopPropagation(); } }} />
+                <datalist id="known-people">
+                  {#each knownRequesters.filter((k) => !peopleDraft.some((x) => x.toLowerCase() === k.toLowerCase())) as r}<option value={r}></option>{/each}
+                </datalist>
+              {:else}
+                <PeopleStack names={task.people} size={26} />
+              {/if}
+            </div>
           {/if}
           <!-- Client is a work-only notion: a personal task has no company behind it. -->
           {#if !isHidden(task, $config) && (editingIssue || task.client)}
@@ -983,6 +1018,9 @@
   .req-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .req-val { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-weight: 500; }
   .req-self { color: var(--text-secondary); }
+  .person-chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 4px 1px 2px; border: 1px solid var(--border-glass); border-radius: 999px; font-size: 12px; color: var(--text-primary); }
+  .chip-x { display: inline-flex; background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 1px; }
+  .chip-x:hover { color: var(--red); }
   /* The client value doubles as the link to its page; kept neutral like the card chip. */
   .client-val { color: var(--text-primary); text-decoration: none; }
   .client-val:hover { color: var(--accent); }

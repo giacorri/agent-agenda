@@ -47,6 +47,7 @@ Returned by the task and ingest endpoints. (Source: `Task` in `backend/src/types
   "tags": ["string"],           // free-form labels
   "source": "agent | user",
   "requester": "string | null",
+  "people": ["string"],         // tagged people besides the requester
   "client": "string | null",    // the client/company the task is for
   "closing": "string | null",   // handoff message, markdown
   "agent_session": "string | null",
@@ -107,6 +108,7 @@ deadline: it never fires a reminder. An unparseable `when` returns `400`.
   "tags": ["string"],           // optional, free-form labels
   "priority": 2,                 // optional, default 2
   "requester": "string",        // optional; trimmed, empty → null
+  "people": ["string"],         // optional; tagged people, trimmed, de-duplicated
   "client": "string",           // optional; trimmed, empty → null
   "closing": "string",          // optional handoff message
   "remind_before_min": 15,       // optional; minutes before due
@@ -308,7 +310,7 @@ snooze-task.sh <id|match> 2026-10-05T09:30:00Z
 
 `PATCH /api/tasks/:id` → `200` with the updated task. Only the fields you send change.
 Accepted fields: `title`, `summary`, `due_at`, `remind_at` (ISO or `""`), `status`,
-`priority`, `tags`, `services`, `steps`, `requester`, `client`, `closing`,
+`priority`, `tags`, `services`, `steps`, `requester`, `people`, `client`, `closing`,
 `completed_at`. Wrongly typed values return `400`. Script for the title:
 `set-title.sh <id|match> "New title"`; for the status:
 `set-status.sh <id|match> in_progress` (agents set it when work on a task starts).
@@ -375,7 +377,7 @@ Primary keys: `key` for `categories`, `people`, `clients`, `scopes`; `shorthand`
 | `scopes` | `key`, `label`, `tag`, `sort`, `icon`, `type` (`generic` \| `study`) |
 
 `photo` and `logo` are a path/URL or a small `data:` URL (the bundle loads with every
-page). A task's free-text `requester` / `client` resolves to a person / client when the
+page). A task's free-text `requester` / `people` / `client` resolve to a person / client when the
 row's `key` appears in it (case-insensitive).
 
 Scripts for single rows: `set-category.sh`, `set-person.sh`, `set-ref.sh`,

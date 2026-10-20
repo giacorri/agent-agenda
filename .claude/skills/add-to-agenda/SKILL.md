@@ -174,9 +174,10 @@ add-task.sh \
 ```
 
 `--when` is there because the user said "in 3 days"; with no date from the user the
-line is simply left out. Options: `--remind-min N` (remind N minutes before due), `--personal` — put the task in
+line is simply left out. Options: `--remind-min N` (remind N minutes before due), `--person <key>`
+(repeatable) — tag other people involved besides the requester, `--personal` — put the task in
 the configured **personal** scope (`personal:true`); it is a real scope, not a hidden one.
-Repeat `--service`, `--tag`, `--step` as needed.
+Repeat `--service`, `--tag`, `--step`, `--person` as needed.
 
 **Scope rule.** The default scope is `work`. If you keep side projects in the personal scope,
 pass `--personal` (or `personal:true` in a raw `/api/ingest` POST) for their tasks; everything

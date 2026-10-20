@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { tasks } from '$lib/stores/tasks';
-  import { config, personFor, requesterMatches } from '$lib/stores/config';
+  import { config, personFor, involves } from '$lib/stores/config';
   import { isOpen, isOverdue } from '$lib/time';
   import { scopeFilter } from '$lib/stores/scope';
   import { searchFilter, searchActive, query } from '$lib/stores/search';
@@ -16,7 +16,7 @@
   const label = $derived(person?.label ?? name);
   const role = $derived(person?.role ?? '');
 
-  const matched = $derived(($tasks as Task[]).filter((t) => $scopeFilter(t) && $searchFilter(t) && requesterMatches(t.requester, name)));
+  const matched = $derived(($tasks as Task[]).filter((t) => $scopeFilter(t) && $searchFilter(t) && involves(t, name)));
   const open = $derived(matched.filter(t => isOpen(t) && !isOverdue(t)).sort(byDue));
   const done = $derived(matched.filter(t => t.status === 'done').sort(byDueDesc));
   const missed = $derived(matched.filter(isOverdue).sort(byDueDesc));

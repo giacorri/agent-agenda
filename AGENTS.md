@@ -62,6 +62,7 @@ A task is the unit of shared state. Its fields, and how an agent should use them
 | `notes`      | **Backward timeline**: progress notes. | What *already happened*, newest at the tip. One note = one step done / decision / blocker. Append-only from the agent's side. |
 | `closing`    | Handoff message for whoever the work is reported to. | The wrap-up text: what now works, what they still have to do, what is left open. Write it as soon as the topic is de-facto closed, not only at `done`. Markdown. |
 | `requester`  | Who asked for the task. | Free text; matching a configured person drives the closing register. Omit if self-assigned. |
+| `people`     | Other people tagged on the task (involved, to inform). | Distinct from `requester`. Configured person keys (or free-form names); `add-task.sh --person <key>`, repeatable. |
 | `client`     | The client/company the work is for. | Free text; matching a configured client gives it a sidebar row and a `/client` page. **Work only** — omit on personal tasks and on internal work with no customer. |
 | `priority`   | Integer (lower = more important; default `2`). | Set only when it matters. |
 | `status`     | `pending`, `in_progress`, `done`, `snoozed` or `shelved`. | Mark done with `done-task.sh`. `shelved` = dropped on purpose but kept for the record (set it from the UI or `PATCH`). Overdue is computed, not a status. |

@@ -3,7 +3,7 @@
   import { tasks } from '$lib/stores/tasks';
   import { scope, ALL, scopeFilter, activeScopeIsHidden } from '$lib/stores/scope';
   import { tagIcon } from '$lib/services';
-  import { config, categoryMeta, isApp, people as peopleStore, clients as clientsStore, requesterMatches, clientMatches } from '$lib/stores/config';
+  import { config, categoryMeta, isApp, people as peopleStore, clients as clientsStore, involves, clientMatches } from '$lib/stores/config';
   import { isOpen } from '$lib/time';
   import { subjectsOf, topicsOf, daysUntil, progressOf } from '$lib/study';
   import ScopeToggle from './ScopeToggle.svelte';
@@ -58,7 +58,7 @@
   // Requesters with nothing open are hidden from the sidebar.
   const people = $derived(
     $peopleStore
-      .map((p) => ({ ...p, count: activeTasks.filter((t) => requesterMatches(t.requester, p.key)).length }))
+      .map((p) => ({ ...p, count: activeTasks.filter((t) => involves(t, p.key)).length }))
       .filter((p) => p.count > 0)
   );
 

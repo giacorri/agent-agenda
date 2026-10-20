@@ -3,6 +3,7 @@ import { newId } from '../ids';
 import { insertTask, insertNote, findTaskByMatch, findAnyTaskByMatch, setSteps, updateTask, getTask, addDep, absorbClientTags } from '../db';
 import { hiddenScopeTag, reminderDefaults } from '../config-db';
 import { parseWhen } from '../parse/when';
+import { cleanPeople } from './tasks';
 import type { IngestPayload, StepsIngestPayload, ClosingIngestPayload, PersonalIngestPayload, LinkIngestPayload, Task, WsMessage, Note } from '../types';
 
 // Fallback personal tag when no hidden scope is configured (preserves the
@@ -65,6 +66,7 @@ export async function handleIngestRequest(
     tags: norm.tags,
     source: 'agent',
     requester: payload.requester?.trim() || null,
+    people: Array.isArray(payload.people) ? cleanPeople(payload.people.filter((p): p is string => typeof p === 'string')) : [],
     client: norm.client,
     closing: payload.closing?.trim() || null,
     agent_session: payload.agent_session ?? null,
