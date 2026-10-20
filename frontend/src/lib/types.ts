@@ -41,6 +41,8 @@ export interface Task {
   source: TaskSource;
   // Who asked for this task. null = self-assigned (the user's own idea).
   requester: string | null;
+  // People tagged on the task besides the requester. Free text, like `requester`.
+  people: string[];
   // The client/company the task is for (work only). null = none. Free text; a
   // configured client (substring match on its key) drives the sidebar row + page.
   client: string | null;

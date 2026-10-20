@@ -79,10 +79,23 @@ test('personal:true uses the configured hidden-scope tag', async () => {
   expect(tags).not.toContain('personal');
 });
 
+test('ingest stores tagged people separately from the requester', async () => {
+  const res = await call({ title: 'review', requester: 'alex', people: ['sam', ' jordan ', 'sam', 42] });
+  expect(res.status).toBe(201);
+  const body = await res.json();
+  expect(body.requester).toBe('alex');
+  expect(body.people).toEqual(['sam', 'jordan']);
+});
+
+test('ingest without people defaults to an empty list', async () => {
+  const res = await call({ title: 'review' });
+  expect((await res.json()).people).toEqual([]);
+});
+
 const sample = (over: Partial<Task>): Task => ({
   id: 'X', title: 'resume me', summary: null, due_at: '2026-06-10T09:30:00+02:00',
   remind_at: '2026-06-10T09:30:00+02:00', status: 'pending', priority: 2, tags: [], services: [],
-  source: 'agent', requester: null, client: null, closing: null, agent_session: null, agent_cwd: null,
+  source: 'agent', requester: null, people: [], client: null, closing: null, agent_session: null, agent_cwd: null,
   created_at: '2026-06-09T10:00:00+02:00', completed_at: null, notified_at: null, steps: [], ...over,
 });
 

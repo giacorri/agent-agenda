@@ -86,6 +86,11 @@ export function requesterMatches(requester: string | null | undefined, key: stri
   return requester.toLowerCase().includes(key.toLowerCase());
 }
 
+// A person's page lists the tasks they asked for or are tagged on.
+export function involves(t: { requester: string | null; people?: string[] }, key: string): boolean {
+  return requesterMatches(t.requester, key) || (t.people ?? []).some((p) => requesterMatches(p, key));
+}
+
 export function personFor(requester: string | null | undefined, c: ConfigBundle = get(config)): Person | undefined {
   if (!requester) return undefined;
   return c.people.find((p) => requesterMatches(requester, p.key));

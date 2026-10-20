@@ -100,6 +100,7 @@ interface TaskSpec {
   services?: string[];
   tags?: string[];        // add 'personal' for personal-scoped tasks
   requester?: string;
+  people?: string[];
   client?: string;
   steps?: string[];
   notes?: NoteSpec[];
@@ -119,6 +120,7 @@ function buildSpecs(db: Database): TaskSpec[] {
       services: ['platform', 'web-app'],
       tags: ['security'],
       requester: 'alex',
+      people: ['jordan', 'sam'],
       client: 'northwind',
       steps: ['Ship the limiter behind a flag', 'Watch error rates for 24h', 'Turn the flag on for everyone'],
       notes: [
@@ -291,6 +293,7 @@ function specToTask(spec: TaskSpec, createdDaysAgo: number): Task {
     tags: spec.tags ?? [],
     source: 'agent',
     requester: spec.requester ?? null,
+    people: spec.people ?? [],
     client: spec.client ?? null,
     closing: spec.closing ?? null,
     agent_session: null,

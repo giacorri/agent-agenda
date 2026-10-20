@@ -5,7 +5,7 @@
 #   add-task --title "..." --summary "..." [--when "tomorrow"] \
 #            [--service <category> --service <category>]... [--tag x]... \
 #            [--body "long text..."] [--remind-min N] [--requester "Name"] \
-#            [--client "Acme"] [--personal] \
+#            [--person <key>]... [--client "Acme"] [--personal] \
 #            [--blocks "keyword"] [--blocked-by "keyword"]
 #
 # Conventions for agents calling this:
@@ -24,6 +24,9 @@
 #   - requester: who asked for the task (free-form name). Omit it if the task is
 #               your own idea (self-assigned). Known requesters drive the
 #               closing-message register.
+#   - person:   someone else involved (to inform, reviewer, …), tagged on the task
+#               besides the requester. Repeatable. A configured person key shows
+#               their photo; free-form names are kept as typed.
 #   - client:   the client/company the work is for (free-form; a configured client
 #               key gives it the sidebar row and the /client page). Work only —
 #               omit it on personal tasks and on internal work with no customer.
@@ -59,6 +62,7 @@ blocked_by=""
 tags=()
 services=()
 steps=()
+people=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -70,13 +74,14 @@ while [[ $# -gt 0 ]]; do
     --service)     services+=("$2"); shift 2 ;;
     --tag)         tags+=("$2"); shift 2 ;;
     --requester)   requester="$2"; shift 2 ;;
+    --person)      people+=("$2"); shift 2 ;;
     --client)      client="$2"; shift 2 ;;
     --personal)    personal="true"; shift ;;
     --blocks)      blocks="$2"; shift 2 ;;
     --blocked-by)  blocked_by="$2"; shift 2 ;;
     --remind-min)  remind="$2"; shift 2 ;;
     -h|--help)
-      sed -n '2,42p' "$0"
+      sed -n '2,45p' "$0"
       exit 0 ;;
     *)
       if [[ -z "$title" ]]; then title="$1"; else
@@ -120,6 +125,7 @@ cwd_j=$(json_str "$(pwd)")
 if [[ ${#tags[@]} -gt 0 ]]; then tags_j=$(json_arr "${tags[@]}"); else tags_j="[]"; fi
 if [[ ${#services[@]} -gt 0 ]]; then services_j=$(json_arr "${services[@]}"); else services_j="[]"; fi
 if [[ ${#steps[@]} -gt 0 ]]; then steps_j=$(json_arr "${steps[@]}"); else steps_j="[]"; fi
+if [[ ${#people[@]} -gt 0 ]]; then people_j=$(json_arr "${people[@]}"); else people_j="[]"; fi
 
 remind_field=""
 if [[ -n "$remind" ]]; then
@@ -152,6 +158,7 @@ body=$(cat <<JSON
   "steps": $steps_j,
 ${when_field}  "services": $services_j,
   "tags": $tags_j,
+  "people": $people_j,
   "personal": $personal,
   "agent_session": $session_j,
   "agent_cwd": $cwd_j$remind_field$requester_field$client_field$deps_field

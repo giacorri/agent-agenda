@@ -230,3 +230,20 @@ test('startup migration renames the legacy accantonato status to shelved (idempo
     rmSync(path, { force: true });
   }
 });
+
+test('startup migration adds the people column to a pre-existing tasks table', () => {
+  const path = join(tmpdir(), `agenda-mig-${Date.now()}-${Math.random().toString(36).slice(2)}.db`);
+  try {
+    const d1 = openDb(path);
+    insertTask(d1, sample());
+    d1.run('ALTER TABLE tasks DROP COLUMN people');
+    d1.close();
+    const d2 = openDb(path);
+    expect(getTask(d2, 'T1')?.people).toEqual([]);
+    updateTask(d2, 'T1', { people: ['alex'] });
+    expect(getTask(d2, 'T1')?.people).toEqual(['alex']);
+    d2.close();
+  } finally {
+    rmSync(path, { force: true });
+  }
+});

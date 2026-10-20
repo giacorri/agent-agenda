@@ -13,6 +13,7 @@
   import Icon from './Icon.svelte';
   import PersonAvatar from './PersonAvatar.svelte';
   import ClientLogo from './ClientLogo.svelte';
+  import PeopleStack from './PeopleStack.svelte';
 
   // dense = tight context (week columns): day is already in the column header, and red/accent
   // already signal late/in-progress, so we drop the day, the tags, and the textual badges.
@@ -209,6 +210,7 @@
           {@const person = personFor(task.requester, $config)}
           <a class="req" href={`/requester/${encodeURIComponent(person?.key ?? task.requester)}`} title={m.tc_requested_by({ who: person?.label ?? task.requester })} aria-label={m.tc_requested_by({ who: person?.label ?? task.requester })} onclick={(e) => e.stopPropagation()}><PersonAvatar photo={person?.photo} size={22} alt={person?.label ?? task.requester} /></a>
         {/if}
+        {#if task.people?.length}<PeopleStack names={task.people} />{/if}
         {#if task.client}
           {@const cl = clientFor(task.client, $config)}
           <!-- Icons only: requester and client names live in the tooltip and the drawer. -->
