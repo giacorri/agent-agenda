@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import type { Task } from '$lib/types';
+import { ZOOMS, type Zoom } from '$lib/gantt';
 
 // Agenda layout preference, persisted across reloads (same pattern as scope).
 // 'compact'  → one continuous grid; each card carries a bucket badge.
@@ -32,8 +33,8 @@ peekMode.subscribe((v) => {
   if (typeof localStorage !== 'undefined') localStorage.setItem(PEEK_KEY, v ? 'on' : 'off');
 });
 
-// Timeline layout: 'days' (default) lists open work day by day; 'gantt' is the
-// created→due bar chart over a wider range. Persisted like the agenda view mode.
+// Timeline layout: 'days' (default) lists open work day by day; 'gantt' plots the
+// same work on a time axis. Persisted like the agenda view mode.
 export type TimelineMode = 'days' | 'gantt';
 const TL_KEY = 'timeline-mode';
 
@@ -45,6 +46,28 @@ export const timelineMode = writable<TimelineMode>(loadTimelineMode());
 timelineMode.subscribe((v) => {
   try { localStorage.setItem(TL_KEY, v); } catch { /* storage unavailable: keep it in memory */ }
 });
+
+// Gantt preferences, remembered per browser like the timeline mode: zoom level,
+// whether closed tasks are shown, and the width of the task column.
+function persisted<T>(key: string, parse: (raw: string | null) => T, dump: (v: T) => string) {
+  let init: T;
+  try { init = parse(localStorage.getItem(key)); } catch { init = parse(null); }
+  const store = writable<T>(init);
+  store.subscribe((v) => {
+    try { localStorage.setItem(key, dump(v)); } catch { /* storage unavailable: keep it in memory */ }
+  });
+  return store;
+}
+
+export const ganttZoom = persisted<Zoom>('gantt-zoom',
+  (raw) => (ZOOMS as readonly string[]).includes(raw ?? '') ? raw as Zoom : 'day', String);
+export const ganttShowClosed = persisted<boolean>('gantt-show-closed', (raw) => raw === 'on', (v) => v ? 'on' : 'off');
+export const GANTT_LABEL_MIN = 160;
+export const GANTT_LABEL_MAX = 560;
+export const ganttLabelWidth = persisted<number>('gantt-label-width', (raw) => {
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= GANTT_LABEL_MIN && n <= GANTT_LABEL_MAX ? n : 300;
+}, String);
 
 // Add-issue modal open state (transient). Mounted in the layout, outside the
 // topbar, so its fixed overlay anchors to the viewport (the glass topbar's

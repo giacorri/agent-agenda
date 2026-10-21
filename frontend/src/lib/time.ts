@@ -102,16 +102,3 @@ export function bucket(t: Task, now: Date = new Date()): string {
   }
   return due < addDays(now, 7) ? 'this_week' : 'later';
 }
-
-// Visual category for a task's timeline bar / card accent.
-export type BarKind = 'done' | 'overdue' | 'snoozed' | 'active';
-export function barKind(t: Task): BarKind {
-  if (isClosed(t)) return 'done';  // shelved reads as ended too (green cap)
-  if (isOverdue(t)) return 'overdue';
-  if (t.status === 'snoozed') return 'snoozed';
-  return 'active';
-}
-
-// Where a task's bar ends on the time axis: completion for done tasks, else the due date.
-export const barEndDate = (t: Task): Date =>
-  t.status === 'done' && t.completed_at ? new Date(t.completed_at) : (parseDue(t.due_at)?.at ?? new Date(NaN));

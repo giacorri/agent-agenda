@@ -113,7 +113,7 @@
   </div>
 
   {#if $timelineMode === 'gantt'}
-    <div class="gantt"><TimelineGantt /></div>
+    <div class="gantt"><TimelineGantt {groups} tasks={visible} {now} sectionTitle={title} sectionSub={subtitle} /></div>
   {:else}
     <div class="days" bind:this={scroller}>
       {#each groups.sections as s (s.key)}
