@@ -56,21 +56,25 @@ a **closing** message (how it ended, ready to send to whoever asked).
 
 ## Screenshots
 
-| Task drawer | Timeline |
+| Timeline, by day | Timeline, Gantt |
 | --- | --- |
-| ![Task drawer with notes, next steps and a closing message](docs/screenshots/task-drawer.png) | ![Timeline view](docs/screenshots/timeline.png) |
+| ![Timeline listing open work day by day: overdue, today and the coming days](docs/screenshots/timeline.png) | ![Timeline in Gantt mode: each task plotted on a time axis](docs/screenshots/gantt.png) |
 
-| Week | Month |
+| Task drawer | Week |
 | --- | --- |
-| ![Week view](docs/screenshots/week.png) | ![Month view](docs/screenshots/month.png) |
+| ![Task drawer with notes, next steps and a closing message](docs/screenshots/task-drawer.png) | ![Week view](docs/screenshots/week.png) |
 
-| Settings | First run |
+| Month | Settings |
 | --- | --- |
-| ![Settings page](docs/screenshots/settings.png) | ![First-run screen](docs/screenshots/first-run.png) |
+| ![Month view](docs/screenshots/month.png) | ![Settings page](docs/screenshots/settings.png) |
 
-| Setup wizard | Phone |
+| First run | Setup wizard |
 | --- | --- |
-| ![Setup wizard](docs/screenshots/onboarding.png) | <img src="docs/screenshots/mobile.png" alt="Agenda on a phone" width="260"> |
+| ![First-run screen](docs/screenshots/first-run.png) | ![Setup wizard](docs/screenshots/onboarding.png) |
+
+| Phone |
+| --- |
+| <img src="docs/screenshots/mobile.png" alt="Agenda on a phone" width="260"> |
 
 ## Quick start
 
