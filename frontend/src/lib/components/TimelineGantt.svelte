@@ -3,7 +3,8 @@
   import { selectedTaskId } from '$lib/stores/tasks';
   import { activeScopeIsHidden } from '$lib/stores/scope';
   import { ganttZoom, ganttShowClosed, ganttLabelWidth, GANTT_LABEL_MIN, GANTT_LABEL_MAX } from '$lib/stores/view';
-  import { config, categoryMeta, taskColor } from '$lib/stores/config';
+  import { config, categoryMeta, taskColor, taskRepo } from '$lib/stores/config';
+  import { renderMarkdown } from '$lib/markdown';
   import { fmt, fmtTime, fmtDayMonth, fmtDueFull, fmtDateTime, statusLabel } from '$lib/format';
   import { relativeTime } from '$lib/time';
   import { daysLate, type DayGroups, type DaySection, type DayItem } from '$lib/timeline';
@@ -281,7 +282,7 @@
     {@const mk = tip.row.mark}
     <div class="tip" style={tipStyle} role="tooltip">
       <b class="tt">{t.title}</b>
-      {#if t.summary}<p class="ts">{t.summary}</p>{/if}
+      {#if t.summary}<div class="ts md">{@html renderMarkdown(t.summary, taskRepo(t), $config)}</div>{/if}
       <dl>
         <dt>{m.gantt_tip_due()}</dt>
         <dd>{t.due_at ? fmtDueFull(t.due_at) : m.tl_no_date()}</dd>
@@ -523,6 +524,10 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); }
   .tt { display: block; font-size: 14px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
   .ts { margin-top: 4px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .ts :global(p) { margin: 0; display: inline; }
+  .ts :global(strong) { color: var(--text-primary); }
+  .ts :global(code) { background: var(--bg-glass-hover); padding: 0 3px; border-radius: 3px; }
+  .ts :global(ul), .ts :global(ol) { display: inline; padding: 0; margin: 0; list-style: none; }
   dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin-top: 8px; font-size: 12.5px; }
   dt { color: var(--text-muted); }
   dd { color: var(--text-primary); }
