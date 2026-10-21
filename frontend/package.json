@@ -11,6 +11,7 @@
     "dev": "vite dev --host 0.0.0.0 --port 3000",
     "build": "vite build",
     "preview": "node build",
+    "test": "TZ=Europe/Rome bun test src",
     "prepare": "svelte-kit sync || echo ''"
   },
   "devDependencies": {

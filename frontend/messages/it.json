@@ -314,5 +314,19 @@
   "search_clear": "Pulisci la ricerca",
   "search_all_agenda": "{n} in tutta l'agenda",
   "search_results": "{n} risultati per «{q}»",
-  "search_none": "Nessun risultato per «{q}» in questa vista."
+  "search_none": "Nessun risultato per «{q}» in questa vista.",
+  "tl_mode_label": "Layout della timeline",
+  "tl_mode_days": "Per giorno",
+  "tl_mode_gantt": "Gantt",
+  "tl_overdue": "In ritardo",
+  "tl_later_this_month": "Più avanti questo mese",
+  "tl_no_date": "Senza scadenza",
+  "tl_nothing_today": "Niente in scadenza oggi.",
+  "tl_nothing_ahead": "Nient'altro in programma.",
+  "tl_days_late": "{count} gg di ritardo",
+  "tl_all_day": "Tutto il giorno",
+  "tl_prio_high": "Priorità alta",
+  "tl_prio_low": "Priorità bassa",
+  "tl_jump_to": "Vai a {day}",
+  "tl_week_strip": "Prossimi sette giorni"
 }

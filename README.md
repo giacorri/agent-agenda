@@ -41,7 +41,8 @@ a **closing** message (how it ended, ready to send to whoever asked).
   colors, people with avatars, clients with logos, repository shorthands that turn
   `web#42` into a link, and scopes such as Work and Personal.
 - **Four views:** a dashboard with progress and a 14-day outlook, a week board, a
-  month calendar and a timeline.
+  month calendar, and a timeline that lists open work day by day (overdue, today,
+  the coming week, later), with a Gantt chart as a second mode.
 - **Task drawer** with the note timeline, ordered next steps, a closing message and
   blocking links between tasks.
 - **Reminders:** due and reminder times, snooze, browser notifications, and optional

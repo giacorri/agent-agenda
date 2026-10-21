@@ -314,5 +314,19 @@
   "search_clear": "Clear search",
   "search_all_agenda": "{n} in the whole agenda",
   "search_results": "{n} results for “{q}”",
-  "search_none": "No results for “{q}” in this view."
+  "search_none": "No results for “{q}” in this view.",
+  "tl_mode_label": "Timeline layout",
+  "tl_mode_days": "By day",
+  "tl_mode_gantt": "Gantt",
+  "tl_overdue": "Overdue",
+  "tl_later_this_month": "Later this month",
+  "tl_no_date": "No due date",
+  "tl_nothing_today": "Nothing due today.",
+  "tl_nothing_ahead": "Nothing else scheduled.",
+  "tl_days_late": "{count}d late",
+  "tl_all_day": "All day",
+  "tl_prio_high": "High priority",
+  "tl_prio_low": "Low priority",
+  "tl_jump_to": "Jump to {day}",
+  "tl_week_strip": "Next seven days"
 }

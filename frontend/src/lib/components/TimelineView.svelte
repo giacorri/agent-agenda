@@ -1,18 +1,21 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { tasks, selectedTaskId } from '$lib/stores/tasks';
-  import { scopeFilter, activeScopeIsHidden } from '$lib/stores/scope';
+  import { scopeFilter } from '$lib/stores/scope';
   import { searchFilter } from '$lib/stores/search';
-  import { fmtDayShort, fmtDayMonth, monthLong, fmtDateTime, bucketLabel } from '$lib/format';
+  import { timelineMode } from '$lib/stores/view';
+  import { config, categoryMeta, taskColor, clientFor } from '$lib/stores/config';
+  import { fmt, fmtTime, fmtDayMonth, statusLabel } from '$lib/format';
+  import { groupByDay, daysLate, type DaySection, type DayItem } from '$lib/timeline';
   import * as m from '$lib/paraglide/messages';
   import type { Task } from '$lib/types';
-  import {
-    bucket, BUCKET_ORDER, barKind, barEndDate, hasDue,
-    startOfDay, addDays, sameDay, type BarKind,
-  } from '$lib/time';
-  import { config, taskColor } from '$lib/stores/config';
+  import Icon from './Icon.svelte';
+  import PeopleStack from './PeopleStack.svelte';
+  import ClientLogo from './ClientLogo.svelte';
+  import TimelineGantt from './TimelineGantt.svelte';
 
-  const DAY = 86_400_000;
+  const DAYS = 7;
+  const DEFAULT_PRIORITY = 2;
 
   let now = $state(new Date());
   onMount(() => {
@@ -20,348 +23,315 @@
     return () => clearInterval(id);
   });
 
-  type Range = 'fit' | '14' | '30' | '90';
-  type Scale = 'linear' | 'compact';
-  let range = $state<Range>('fit');
-  let scale = $state<Scale>('linear');
-  let expanded = $state(false);
+  const visible = $derived(($tasks as Task[]).filter((t) => $scopeFilter(t) && $searchFilter(t)));
+  const groups = $derived(groupByDay(visible, now, DAYS));
+  let showUndated = $state(false);
 
-  const RANGES: [Range, () => string][] = [['fit', m.tl_range_fit], ['14', m.tl_range_2w], ['30', m.tl_range_1m], ['90', m.tl_range_3m]];
-  const SCALES: [Scale, () => string][] = [['linear', m.tl_scale_linear], ['compact', m.tl_scale_compact]];
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const weekdayLong = (d: Date) => cap(fmt(d, { weekday: 'long' }));
+  const dayMonthLong = (d: Date) => fmt(d, { day: 'numeric', month: 'long' });
 
-  interface Bar { task: Task; kind: BarKind; start: Date; end: Date; }
-
-  const bars = $derived.by<Bar[]>(() =>
-    ($tasks as Task[])
-      // General (open, no-deadline) tasks have no end date to place on the axis — exclude them.
-      .filter((t) => $scopeFilter(t) && $searchFilter(t) && (hasDue(t) || t.status === 'done'))
-      .map((t) => ({ task: t, kind: barKind(t), start: new Date(t.created_at), end: barEndDate(t) }))
-  );
-
-  const win = $derived.by(() => {
-    if (range !== 'fit') {
-      const wStart = startOfDay(addDays(now, -2));
-      const wEnd = addDays(startOfDay(now), Number(range));
-      return { start: wStart.getTime(), end: wEnd.getTime(), days: Math.round((wEnd.getTime() - wStart.getTime()) / DAY) };
+  function title(s: DaySection): string {
+    switch (s.kind) {
+      case 'overdue': return m.tl_overdue();
+      case 'today': return m.bucket_today();
+      case 'tomorrow': return m.bucket_tomorrow();
+      case 'day': return weekdayLong(s.date);
+      case 'month': {
+        if (s.date.getFullYear() === now.getFullYear() && s.date.getMonth() === now.getMonth()) return m.tl_later_this_month();
+        const yr = s.date.getFullYear() !== now.getFullYear() ? ` ${s.date.getFullYear()}` : '';
+        return cap(fmt(s.date, { month: 'long' })) + yr;
+      }
     }
-    const starts = bars.map((b) => b.start.getTime());
-    const ends = bars.map((b) => b.end.getTime());
-    const minT = Math.min(now.getTime(), ...starts);
-    const maxT = Math.max(addDays(now, 1).getTime(), ...ends);
-    let wStart = startOfDay(new Date(minT));
-    let wEnd = addDays(startOfDay(new Date(maxT)), 1);
-    let days = Math.round((wEnd.getTime() - wStart.getTime()) / DAY);
-    if (days > 365) {
-      wStart = addDays(startOfDay(now), -3);
-      days = Math.round((wEnd.getTime() - wStart.getTime()) / DAY);
-      if (days > 365) { wEnd = addDays(wStart, 365); days = 365; }
-    }
-    return { start: wStart.getTime(), end: wEnd.getTime(), days };
-  });
+  }
+  function subtitle(s: DaySection): string {
+    if (s.kind === 'today' || s.kind === 'tomorrow') return `${weekdayLong(s.date)} ${dayMonthLong(s.date)}`;
+    if (s.kind === 'day') return dayMonthLong(s.date);
+    return '';
+  }
 
-  // Compact (non-linear) scale: keep only the time spans where something is alive
-  // (a task's created→due interval, plus today), collapse the empty gaps between them.
-  const aliveSegments = $derived.by<[number, number][]>(() => {
-    const ivs: [number, number][] = [];
-    for (const b of bars) {
-      const s = Math.max(b.start.getTime(), win.start);
-      const e = Math.min(b.end.getTime(), win.end);
-      if (e >= s) ivs.push([s, e]);
-    }
-    ivs.push([Math.max(win.start, startOfDay(now).getTime()), Math.min(win.end, addDays(startOfDay(now), 1).getTime())]);
-    ivs.sort((a, b) => a[0] - b[0]);
-    const merged: [number, number][] = [];
-    for (const [s, e] of ivs) {
-      const last = merged[merged.length - 1];
-      if (last && s <= last[1] + DAY) last[1] = Math.max(last[1], e);
-      else merged.push([s, e]);
-    }
-    return merged;
-  });
-
-  const layout = $derived.by(() => {
-    const PX_DAY = 66, GAP = 32, MIN_SEG = 26;
-    const segs: { s: number; e: number; x0: number; x1: number }[] = [];
-    let x = 0;
-    aliveSegments.forEach((iv, i) => {
-      if (i > 0) x += GAP;
-      const days = Math.max((iv[1] - iv[0]) / DAY, 0.05);
-      const w = Math.max(days * PX_DAY, MIN_SEG);
-      segs.push({ s: iv[0], e: iv[1], x0: x, x1: x + w });
-      x += w;
+  // Seven-day strip (Todoist-style week navigator): one cell per day with its count.
+  const strip = $derived.by(() => {
+    const byKey = new Map(groups.sections.map((s) => [s.key, s]));
+    const base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Array.from({ length: DAYS }, (_, i) => {
+      const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      return { key, date: d, count: byKey.get(key)?.items.length ?? 0, today: i === 0 };
     });
-    return { segs, total: Math.max(x, 320) };
   });
+  const overdueCount = $derived(groups.sections.find((s) => s.kind === 'overdue')?.items.length ?? 0);
 
-  const activeDays = $derived(aliveSegments.reduce((a, [s, e]) => a + Math.max(1, Math.round((e - s) / DAY)), 0));
-
-  function pos(t: number): number {
-    if (scale === 'linear') return ((t - win.start) / (win.end - win.start)) * 100;
-    const { segs, total } = layout;
-    if (!segs.length) return 0;
-    if (t <= segs[0].s) return (segs[0].x0 / total) * 100;
-    const last = segs[segs.length - 1];
-    if (t >= last.e) return (last.x1 / total) * 100;
-    for (let i = 0; i < segs.length; i++) {
-      const sg = segs[i];
-      if (t <= sg.e) {
-        if (t >= sg.s) {
-          const f = (t - sg.s) / Math.max(sg.e - sg.s, 1);
-          return ((sg.x0 + f * (sg.x1 - sg.x0)) / total) * 100;
-        }
-        const prev = segs[i - 1];
-        return (((prev.x1 + sg.x0) / 2) / total) * 100;
-      }
-    }
-    return 100;
+  let scroller = $state<HTMLElement>();
+  function jump(key: string) {
+    scroller?.querySelector(`[data-sec="${key}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  const clamp = (p: number) => Math.min(100, Math.max(0, p));
 
-  const unitDays = $derived(scale === 'compact' ? activeDays : win.days);
-  const step = $derived(unitDays <= 16 ? 1 : unitDays <= 70 ? 7 : 14);
-  const trackMin = $derived(`${scale === 'compact' ? Math.round(layout.total) : Math.max(Math.ceil(win.days / step) * 66, 520)}px`);
-  const dayW = $derived(scale === 'linear' ? `${(step / win.days) * 100}%` : '100%');
-
-  const ticks = $derived.by(() => {
-    const out: { left: number; label: string; today: boolean }[] = [];
-    const mk = (d: Date) => step === 1 ? fmtDayShort(d) : fmtDayMonth(d);
-    if (scale === 'linear') {
-      for (let i = 0; i <= win.days; i += step) {
-        const d = addDays(new Date(win.start), i);
-        out.push({ left: pos(d.getTime()), label: mk(d), today: sameDay(d, now) });
-      }
-    } else {
-      for (const sg of layout.segs) {
-        let d = startOfDay(new Date(sg.s));
-        if (d.getTime() < sg.s) d = addDays(d, 1);
-        for (; d.getTime() <= sg.e + DAY; d = addDays(d, step)) {
-          out.push({ left: pos(d.getTime()), label: mk(d), today: sameDay(d, now) });
-        }
-      }
-    }
-    return out;
-  });
-
-  const gaps = $derived.by(() => {
-    if (scale !== 'compact') return [] as { left: number }[];
-    const out: { left: number }[] = [];
-    const segs = layout.segs;
-    for (let i = 1; i < segs.length; i++) out.push({ left: ((segs[i - 1].x1 + segs[i].x0) / 2 / layout.total) * 100 });
-    return out;
-  });
-
-  const months = $derived.by(() => {
-    const out: { left: number; width: number; label: string }[] = [];
-    let cur = new Date(win.start);
-    cur = new Date(cur.getFullYear(), cur.getMonth(), 1);
-    while (cur.getTime() < win.end) {
-      const next = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
-      const left = pos(Math.max(cur.getTime(), win.start));
-      const width = pos(Math.min(next.getTime(), win.end)) - left;
-      if (width > 0.6) {
-        const yr = cur.getFullYear() !== now.getFullYear() ? ` '${String(cur.getFullYear()).slice(2)}` : '';
-        out.push({ left, width, label: monthLong(cur) + yr });
-      }
-      cur = next;
-    }
-    return out;
-  });
-
-  const nowLeft = $derived(clamp(pos(now.getTime())));
-  const todayLeft = $derived(clamp(pos(startOfDay(now).getTime())));
-  const todayW = $derived(`${Math.max(pos(addDays(startOfDay(now), 1).getTime()) - pos(startOfDay(now).getTime()), 0.6)}%`);
-
-  const groups = $derived.by(() => {
-    const g: Record<string, Bar[]> = {};
-    for (const b of bars) {
-      const key = b.task.status === 'done' ? 'done' : bucket(b.task, now);
-      (g[key] ??= []).push(b);
-    }
-    for (const k of Object.keys(g)) g[k].sort((a, b) => a.task.due_at.localeCompare(b.task.due_at));
-    return g;
-  });
-
-  const fmtTime = (d: Date) => fmtDateTime(d);
-
-  function geom(b: Bar) {
-    const left = clamp(pos(b.start.getTime()));
-    const right = clamp(pos(b.end.getTime()));
-    return { left, width: Math.max(right - left, 1.2), clipLeft: b.start.getTime() < win.start };
+  function open(e: MouseEvent | KeyboardEvent, id: string) {
+    if ((e.target as HTMLElement).closest('a')) return;
+    selectedTaskId.set(id);
   }
+
+  // Overdue and month sections span several days, so their rows lead with the date.
+  function whenParts(it: DayItem, withDate: boolean): { main: string; sub: string } {
+    const time = it.due.allDay ? '' : fmtTime(it.due.at);
+    return withDate ? { main: fmtDayMonth(it.due.at), sub: time } : { main: time, sub: '' };
+  }
+  const whoOf = (t: Task) => [...(t.requester ? [t.requester] : []), ...(t.people ?? []).filter((p) => p !== t.requester)];
 </script>
 
-<div class="timeline" class:expanded>
-  <div class="bar-controls">
-    <div class="seg">
-      {#each RANGES as [val, lbl]}
-        <button class:on={range === val} onclick={() => (range = val)}>{lbl()}</button>
-      {/each}
+<div class="tlv">
+  <div class="top">
+    <div class="seg" role="group" aria-label={m.tl_mode_label()}>
+      <button class:on={$timelineMode === 'days'} aria-pressed={$timelineMode === 'days'} onclick={() => timelineMode.set('days')}>
+        <Icon name="rows" size={14} /> {m.tl_mode_days()}
+      </button>
+      <button class:on={$timelineMode === 'gantt'} aria-pressed={$timelineMode === 'gantt'} onclick={() => timelineMode.set('gantt')}>
+        <Icon name="chart" size={14} /> {m.tl_mode_gantt()}
+      </button>
     </div>
-    <div class="seg">
-      {#each SCALES as [val, lbl]}
-        <button class:on={scale === val} onclick={() => (scale = val)}>{lbl()}</button>
-      {/each}
-    </div>
-    <button class="expand" onclick={() => (expanded = !expanded)} title={m.tl_expand()}>
-      {expanded ? `⤡ ${m.tl_collapse()}` : `⤢ ${m.tl_expand_label()}`}
-    </button>
-    <div class="legend">
-      <span><i class="sw multi"></i> {m.tl_legend_category()}</span>
-      <span><i class="cap">✓</i> {m.status_done()}</span>
-      <span><i class="sw ring"></i> {m.overdue()}</span>
-      <span><i class="nowdot"></i> {m.tl_legend_now()}</span>
-      {#if scale === 'compact'}<span><i class="gapdot">⋯</i> {m.tl_legend_empty_days()}</span>{/if}
-    </div>
+
+    {#if $timelineMode === 'days'}
+      <nav class="strip" aria-label={m.tl_week_strip()}>
+        {#if overdueCount}
+          <button class="cell late" onclick={() => jump('overdue')} title={m.tl_overdue()}>
+            <span class="wd">{m.tl_overdue()}</span>
+            <span class="dn"><Icon name="alert" size={15} /></span>
+            <span class="ct">{overdueCount}</span>
+          </button>
+        {/if}
+        {#each strip as c (c.key)}
+          <button class="cell" class:today={c.today} class:empty={!c.count} disabled={!c.count}
+            onclick={() => jump(c.key)} aria-label={m.tl_jump_to({ day: `${weekdayLong(c.date)} ${dayMonthLong(c.date)}` })}>
+            <span class="wd">{fmt(c.date, { weekday: 'short' })}</span>
+            <span class="dn">{c.date.getDate()}</span>
+            <span class="ct">{c.count || '·'}</span>
+          </button>
+        {/each}
+      </nav>
+    {/if}
   </div>
 
-  <div class="chart">
-    <!-- month band -->
-    <div class="row band" style={`--track-min:${trackMin}`}>
-      <div class="label head">{m.tl_task_header()}</div>
-      <div class="track">
-        {#each months as mo}
-          <span class="month" style={`left:${mo.left}%; width:${mo.width}%`}>{mo.label}</span>
-        {/each}
-      </div>
-    </div>
+  {#if $timelineMode === 'gantt'}
+    <div class="gantt"><TimelineGantt /></div>
+  {:else}
+    <div class="days" bind:this={scroller}>
+      {#each groups.sections as s (s.key)}
+        <section class="day glass" class:overdue={s.kind === 'overdue'} class:today={s.kind === 'today'} class:month={s.kind === 'month'} class:empty={!s.items.length} data-sec={s.key}>
+          <header>
+            <span class="tile">
+              {#if s.kind === 'overdue'}
+                <Icon name="alert" size={18} />
+              {:else if s.kind === 'month'}
+                <span class="tw">{fmt(s.date, { month: 'short' })}</span><Icon name="calendar" size={15} />
+              {:else}
+                <span class="tw">{fmt(s.date, { weekday: 'short' })}</span><span class="tn">{s.date.getDate()}</span>
+              {/if}
+            </span>
+            <span class="hl">
+              <b>{title(s)}</b>
+              {#if subtitle(s)}<span class="sub">{subtitle(s)}</span>{/if}
+              {#if !s.items.length}<span class="none">{m.tl_nothing_today()}</span>{/if}
+            </span>
+            {#if s.items.length}<span class="count">{s.items.length}</span>{/if}
+          </header>
 
-    <!-- day / week axis -->
-    <div class="row axis" style={`--track-min:${trackMin}`}>
-      <div class="label"></div>
-      <div class="track">
-        <span class="today-band" style={`left:${todayLeft}%; width:${todayW}`}></span>
-        {#each ticks as tk}
-          <span class="tick" class:today={tk.today} style={`left:${tk.left}%`}>
-            <span class="tlabel">{tk.label}</span>
-          </span>
-        {/each}
-        {#each gaps as gp}<span class="gapmark" style={`left:${gp.left}%`}>⋯</span>{/each}
-        <span class="nowline" style={`left:${nowLeft}%`}><span class="nowtag">{m.tl_legend_now()}</span></span>
-      </div>
-    </div>
+          {#if s.items.length}
+            <ul>
+              {#each s.items as it (it.task.id)}
+                {@render row(it, s.kind === 'overdue', s.kind === 'month')}
+              {/each}
+            </ul>
+          {/if}
+        </section>
+      {/each}
 
-    {#each BUCKET_ORDER as gname}
-      {#if groups[gname]?.length}
-        <div class="group">{bucketLabel(gname)}</div>
-        {#each groups[gname] as b (b.task.id)}
-          {@const g = geom(b)}
-          <div class="row" style={`--track-min:${trackMin}; --c:${taskColor(b.task, $config)}`}>
-            <button class="label" onclick={() => selectedTaskId.set(b.task.id)} title={b.task.title}>
-              <span class="dotc"></span>
-              <span class="t">{b.task.title}</span>
-            </button>
-            <div class="track" style={`--dayw:${dayW}`}>
-              {#each gaps as gp}<span class="gapline" style={`left:${gp.left}%`}></span>{/each}
-              <button
-                class={`bar ${b.kind}`}
-                class:clip-left={g.clipLeft}
-                style={`left:${g.left}%; width:${g.width}%`}
-                onclick={() => selectedTaskId.set(b.task.id)}
-                title={`${b.task.title}\n${m.td_created()}: ${fmtTime(b.start)}\n${b.kind === 'done' ? m.status_done() : m.tl_due()}: ${fmtTime(b.end)}`}
-              >
-                <span class="cap">{b.kind === 'done' ? '✓' : ''}</span>
-              </button>
-              <span class="nowline thin" style={`left:${nowLeft}%`}></span>
-            </div>
-          </div>
-        {/each}
+      {#if groups.sections.length === 1 && groups.sections[0].kind === 'today'}
+        <p class="ahead">{m.tl_nothing_ahead()}</p>
       {/if}
-    {/each}
-  </div>
 
-  {#if bars.length === 0}
-    <p class="empty">{$activeScopeIsHidden ? m.tl_empty_personal() : m.tl_empty()}</p>
+      {#if groups.undated.length}
+        <section class="undated">
+          <button class="und-head" class:open={showUndated} aria-expanded={showUndated} onclick={() => (showUndated = !showUndated)}>
+            <Icon name="chevron" size={14} /> {m.tl_no_date()} <span class="und-count">{groups.undated.length}</span>
+          </button>
+          {#if showUndated}
+            <ul class="glass">
+              {#each groups.undated as t (t.id)}
+                {@render row({ task: t, due: { at: new Date(t.created_at), allDay: true }, late: false }, false, false, true)}
+              {/each}
+            </ul>
+          {/if}
+        </section>
+      {/if}
+    </div>
   {/if}
 </div>
 
+{#snippet row(it: DayItem, overdueSec: boolean, showDate: boolean, undated = false)}
+  {@const t = it.task}
+  {@const cats = (t.services ?? []).filter((x) => x && x.trim())}
+  {@const who = whoOf(t)}
+  {@const blocked = (t.blocked_by ?? []).length > 0}
+  {@const w = whenParts(it, overdueSec || showDate)}
+  <li>
+    <div class="row" role="button" tabindex="0" style={`--c:${taskColor(t, $config)}`}
+      class:late={it.late} class:prog={t.status === 'in_progress'} class:snz={t.status === 'snoozed'} class:blocked
+      onclick={(e) => open(e, t.id)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(e, t.id); } }}>
+      <span class="st" title={statusLabel(t.status)} aria-label={statusLabel(t.status)}></span>
+      {#if !undated}
+        <span class="when" title={it.due.allDay ? m.tl_all_day() : ''}>{w.main}{#if w.sub}<i>{w.sub}</i>{/if}</span>
+      {/if}
+      <span class="main">
+        <span class="title">{t.title}</span>
+        <span class="meta">
+          {#if !undated && w.main}<span class="when-inline">{w.main}{w.sub ? ` ${w.sub}` : ''}</span>{/if}
+          {#if overdueSec}<span class="flag late">{m.tl_days_late({ count: daysLate(it.due, now) })}</span>
+          {:else if it.late}<span class="flag late">{m.overdue()}</span>{/if}
+          {#if t.status === 'in_progress' || t.status === 'snoozed'}<span class="flag {t.status}">{statusLabel(t.status)}</span>{/if}
+          {#if blocked}<span class="flag blocked" title={(t.blocked_by ?? []).map((b) => b.title).join(', ')}><Icon name="lock" size={11} /> {m.tc_blocked()}</span>{/if}
+          {#each cats.slice(0, 2) as key (key)}
+            {@const meta = categoryMeta(key, $config)}
+            <a class="cat" href={`/service/${encodeURIComponent(key)}`} style={`--svc:${meta.color}`} title={meta.label}><Icon name={meta.icon} size={12} /><span>{meta.label}</span></a>
+          {/each}
+          {#if cats.length > 2}<span class="more">+{cats.length - 2}</span>{/if}
+        </span>
+      </span>
+      <span class="side">
+        {#if t.priority !== DEFAULT_PRIORITY}
+          {@const high = t.priority < DEFAULT_PRIORITY}
+          <span class="prio" class:high title={high ? m.tl_prio_high() : m.tl_prio_low()}>P{t.priority}</span>
+        {/if}
+        {#if who.length}<PeopleStack names={who} size={20} />{/if}
+        {#if t.client}
+          {@const cl = clientFor(t.client, $config)}
+          <a class="cli" href={`/client/${encodeURIComponent(cl?.key ?? t.client)}`} title={m.tc_for_client({ name: cl?.label ?? t.client })} aria-label={m.tc_for_client({ name: cl?.label ?? t.client })}>
+            <ClientLogo logo={cl?.logo} size={cl?.logo ? 18 : 14} alt={cl?.label ?? t.client} />
+          </a>
+        {/if}
+      </span>
+    </div>
+  </li>
+{/snippet}
+
 <style>
-  .timeline { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow: hidden; }
-  .timeline.expanded {
-    position: fixed; inset: 0; z-index: 45; padding: 16px; gap: 12px;
-    background: linear-gradient(135deg, var(--bg-base), var(--bg-deep));
+  .tlv { display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0; container-type: inline-size; }
+
+  .top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .seg { display: inline-flex; gap: 2px; padding: 2px; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 8px; }
+  .seg button { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid transparent; border-radius: 6px; color: var(--text-secondary); padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+  .seg button:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
+  .seg button.on { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-border); }
+
+  /* Week navigator: compact day tiles, today in the accent, empty days quiet. */
+  .strip { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cell { display: grid; justify-items: center; gap: 0; min-width: 46px; padding: 4px 6px 5px; border-radius: 8px; cursor: pointer;
+    background: var(--bg-glass); border: 1px solid var(--border-glass); color: var(--text-secondary); font: inherit; }
+  .cell:hover:not(:disabled) { background: var(--bg-glass-hover); color: var(--text-primary); }
+  .cell:disabled { cursor: default; opacity: 0.5; }
+  .cell .wd { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+  .cell .dn { font-size: 16px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; min-height: 19px; }
+  .cell .ct { font-size: 11px; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .cell.today { background: var(--accent-dim); border-color: var(--accent-border); }
+  .cell.today .dn, .cell.today .wd, .cell.today .ct { color: var(--accent); }
+  .cell.late { background: var(--red-dim); border-color: var(--red-border); }
+  .cell.late .wd, .cell.late .dn, .cell.late .ct { color: var(--red); }
+
+  .gantt { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+  .days { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-bottom: 24px; }
+  .days > * { width: 100%; max-width: 980px; }
+
+  /* clip, not hidden: hidden would make each section a scroll container and break the sticky header. */
+  .day { overflow: clip; flex: none; }
+  .day header { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    background: color-mix(in srgb, var(--bg-base) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border-glass); }
+  .tile { display: grid; justify-items: center; align-content: center; width: 42px; height: 42px; flex: none; border-radius: 8px;
+    background: var(--bg-glass-hover); color: var(--text-secondary); }
+  .tile .tw { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.1; color: var(--text-muted); }
+  .tile .tn { font-size: 18px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+  .hl { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; flex: 1; }
+  .hl b { font-size: 16px; font-weight: 650; color: var(--text-primary); }
+  .hl .sub { font-size: 13px; color: var(--text-muted); }
+  .count { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; padding: 1px 9px; border-radius: 999px;
+    background: var(--bg-glass-hover); color: var(--text-secondary); }
+
+  .day.today { border-color: var(--accent-border); }
+  .day.today .tile { background: var(--accent-dim); }
+  .day.today .tile .tw, .day.today .tile .tn, .day.today .hl b { color: var(--accent); }
+  .day.today .count { background: var(--accent-dim); color: var(--accent); }
+  .day.overdue { border-color: var(--red-border); }
+  .day.overdue .tile { background: var(--red-dim); color: var(--red); }
+  .day.overdue .hl b { color: var(--red); }
+  .day.overdue .count { background: var(--red-dim); color: var(--red); }
+  .day.month .tile { color: var(--text-muted); }
+
+  .hl .none { font-size: 13px; color: var(--text-muted); font-style: italic; }
+  .day.empty header { border-bottom: none; }
+  .ahead { font-size: 13px; color: var(--text-muted); padding: 0 4px; }
+
+  ul { list-style: none; }
+  li + li .row { border-top: 1px solid color-mix(in srgb, var(--border-glass) 70%, transparent); }
+
+  /* One scannable line per task: status · time · title/meta · people. */
+  .row { display: grid; grid-template-columns: 14px 72px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+    padding: 9px 14px 9px 12px; border-left: 3px solid var(--c, transparent); cursor: pointer; transition: background 0.12s; }
+  .undated .row { grid-template-columns: 14px minmax(0, 1fr) auto; }
+  .undated .row .main { padding: 2px 0; }
+  .row:hover { background: var(--bg-glass-hover); }
+  .row:focus { outline: none; }
+  .row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  /* Status glyph: ring = to do, half-filled = in progress, dashed = snoozed, red = late. */
+  .st { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--text-muted); justify-self: center; }
+  .row.prog .st { border-color: var(--accent); background: conic-gradient(var(--accent) 0 50%, transparent 50% 100%); }
+  .row.snz .st { border-style: dashed; border-color: var(--amber); }
+  .row.late .st { border-color: var(--red); }
+
+  .when { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-secondary); white-space: nowrap; display: flex; flex-direction: column; line-height: 1.25; }
+  .when i { font-style: normal; font-weight: 500; font-size: 12px; color: var(--text-muted); }
+  .row.late .when, .row.late .when-inline { color: var(--red); }
+  .when-inline { display: none; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-secondary); white-space: nowrap; }
+
+  .main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .title { font-size: 15px; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+  .meta:empty { display: none; }
+  .flag { font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
+  .flag.late { color: var(--red); }
+  .flag.in_progress { color: var(--accent); }
+  .flag.snoozed { color: var(--amber); }
+  .flag.blocked { color: var(--amber); }
+  .cat { display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; border-radius: 999px; text-decoration: none; white-space: nowrap;
+    color: var(--svc, var(--accent)); background: color-mix(in srgb, var(--svc, var(--accent)) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--svc, var(--accent)) 32%, transparent); }
+  .cat:hover { background: color-mix(in srgb, var(--svc, var(--accent)) 22%, transparent); }
+  .more { color: var(--text-muted); }
+
+  .side { display: inline-flex; align-items: center; gap: 8px; }
+  .prio { font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; color: var(--text-muted); border: 1px solid var(--border-glass); }
+  .prio.high { color: var(--amber); border-color: var(--amber-border); background: var(--amber-dim); }
+  .cli { display: inline-flex; color: var(--text-secondary); text-decoration: none; }
+
+  .undated { flex: none; }
+  .und-head { display: flex; align-items: center; gap: 8px; padding: 6px 2px; background: none; border: none; cursor: pointer;
+    font: inherit; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+  .und-head:hover { color: var(--text-primary); }
+  .und-head :global(svg) { transition: transform 0.15s ease; transform: rotate(-90deg); }
+  .und-head.open :global(svg) { transform: rotate(0deg); }
+  .und-count { opacity: 0.6; font-weight: 500; }
+  .undated ul { margin-top: 8px; overflow: hidden; }
+
+  /* Narrow: drop category labels to icons, tighten the time column. */
+  @container (max-width: 560px) {
+    /* The time column moves into the meta line so the title gets the full width. */
+    .row { grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; padding: 9px 10px 9px 9px; }
+    .row .when { display: none; }
+    .when-inline { display: inline; }
+    .cat span { display: none; }
+    .cat { padding: 1px 5px; }
+    .title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
+    .day header { padding: 9px 10px; gap: 10px; }
+    .cell { min-width: 38px; padding: 3px 4px 4px; }
   }
-
-  .bar-controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-  .seg { display: inline-flex; border: 1px solid var(--border-glass); border-radius: 6px; overflow: hidden; }
-  .seg button { background: var(--bg-glass); border: none; color: var(--text-secondary); padding: 5px 11px; font-size: 13px; cursor: pointer; border-right: 1px solid var(--border-glass); }
-  .seg button:last-child { border-right: none; }
-  .seg button:hover { background: var(--bg-glass-hover); }
-  .seg button.on { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
-  .expand { background: var(--bg-glass); border: 1px solid var(--border-glass); color: var(--text-secondary); padding: 5px 11px; font-size: 13px; border-radius: 6px; cursor: pointer; }
-  .expand:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
-
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); margin-left: auto; }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend .sw { width: 16px; height: 9px; border-radius: 2px; display: inline-block; }
-  .legend .sw.multi { background: linear-gradient(90deg, #a78bfa, #34d399, #fb923c, #60a5fa); }
-  .legend .sw.ring { background: var(--bg-glass-hover); box-shadow: 0 0 0 2px var(--red); }
-  .legend .cap { font-style: normal; color: var(--green); font-weight: 700; }
-  .legend .nowdot { width: 2px; height: 12px; background: var(--text-primary); display: inline-block; }
-  .legend .gapdot { font-style: normal; color: var(--text-muted); }
-
-  .chart { overflow: auto; flex: 1; border: 1px solid var(--border-glass); border-radius: 8px; background: var(--bg-glass); }
-
-  .row { display: grid; grid-template-columns: 210px var(--track-min); align-items: center; }
-  .row:not(.axis):not(.band):hover { background: var(--bg-glass-hover); }
-
-  .label {
-    position: sticky; left: 0; z-index: 3;
-    display: flex; align-items: center; gap: 8px;
-    padding: 9px 12px; min-width: 0;
-    background: var(--bg-base);
-    border-right: 1px solid var(--border-glass); border-left: 3px solid var(--c, transparent);
-    color: var(--text-primary); font: inherit; text-align: left; cursor: pointer;
-  }
-  button.label:hover { background: var(--bg-glass-hover); }
-  .label .dotc { width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--text-muted)); flex: 0 0 auto; }
-  .label .t { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .label.head { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); cursor: default; }
-
-  .track {
-    position: relative; height: 38px;
-    background-image: repeating-linear-gradient(to right, var(--border-glass) 0 1px, transparent 1px var(--dayw, 100%));
-  }
-  .band .track, .axis .track { background-image: none; }
-  .band .track { height: 24px; }
-  .band .label { background: var(--bg-base); }
-  .month { position: absolute; top: 4px; bottom: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 12px; text-transform: capitalize; color: var(--text-secondary); border-left: 1px solid var(--border-glass); white-space: nowrap; overflow: hidden; }
-  .axis .track { height: 30px; }
-
-  .tick { position: absolute; top: 0; bottom: 0; transform: translateX(-50%); }
-  .tick .tlabel { position: absolute; top: 7px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-  .tick.today .tlabel { color: var(--accent); font-weight: 600; }
-
-  .gapmark { position: absolute; top: 6px; transform: translateX(-50%); font-size: 13px; color: var(--text-muted); }
-  .gapline { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--border-glass); transform: translateX(-50%); }
-
-  .today-band { position: absolute; top: 0; bottom: 0; background: var(--accent-dim); }
-
-  .nowline { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--text-primary); transform: translateX(-50%); z-index: 2; }
-  .nowline.thin { opacity: 0.35; }
-  .nowtag { position: absolute; top: -1px; left: 4px; font-size: 10px; color: var(--text-primary); background: var(--bg-base); padding: 1px 5px; border-radius: 4px; white-space: nowrap; }
-
-  .bar {
-    position: absolute; top: 50%; transform: translateY(-50%);
-    height: 18px; border-radius: 9px; cursor: pointer; padding: 0;
-    border: 1px solid transparent; min-width: 6px;
-    display: flex; align-items: center; justify-content: flex-end;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); z-index: 1;
-  }
-  .bar:hover { filter: brightness(1.15); }
-  .bar .cap { font-size: 11px; line-height: 1; padding-right: 4px; color: #06210f; font-weight: 700; }
-  .bar.clip-left { border-top-left-radius: 0; border-bottom-left-radius: 0; }
-
-  .bar.active { background: linear-gradient(90deg, color-mix(in srgb, var(--c) 42%, transparent), var(--c)); border-color: color-mix(in srgb, var(--c) 55%, transparent); }
-  .bar.done { background: var(--c); opacity: 0.5; }
-  .bar.done .cap { color: #06210f; }
-  .bar.overdue { background: var(--c); box-shadow: 0 0 0 2px var(--red), 0 1px 3px rgba(0, 0, 0, 0.3); }
-  .bar.snoozed { background: var(--c); opacity: 0.82; border-style: dashed; border-color: var(--amber-border); }
-
-  .group {
-    position: sticky; left: 0;
-    padding: 7px 12px 3px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--text-muted); background: var(--bg-base);
-  }
-
-  .empty { color: var(--text-muted); }
 </style>

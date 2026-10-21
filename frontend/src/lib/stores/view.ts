@@ -32,6 +32,20 @@ peekMode.subscribe((v) => {
   if (typeof localStorage !== 'undefined') localStorage.setItem(PEEK_KEY, v ? 'on' : 'off');
 });
 
+// Timeline layout: 'days' (default) lists open work day by day; 'gantt' is the
+// created→due bar chart over a wider range. Persisted like the agenda view mode.
+export type TimelineMode = 'days' | 'gantt';
+const TL_KEY = 'timeline-mode';
+
+function loadTimelineMode(): TimelineMode {
+  try { return localStorage.getItem(TL_KEY) === 'gantt' ? 'gantt' : 'days'; } catch { return 'days'; }
+}
+
+export const timelineMode = writable<TimelineMode>(loadTimelineMode());
+timelineMode.subscribe((v) => {
+  try { localStorage.setItem(TL_KEY, v); } catch { /* storage unavailable: keep it in memory */ }
+});
+
 // Add-issue modal open state (transient). Mounted in the layout, outside the
 // topbar, so its fixed overlay anchors to the viewport (the glass topbar's
 // backdrop-filter would otherwise become the containing block).

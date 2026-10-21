@@ -93,6 +93,13 @@ When you add or change behavior in the backend, add a matching `*.test.ts` file 
 extend an existing one) under `backend/tests/`. Keep tests focused on the unit you
 changed.
 
+The frontend keeps its pure logic (no stores, no Svelte) in `frontend/src/lib/*.ts`
+and tests it next to the module as `*.test.ts`, with the same pinned timezone:
+
+```bash
+cd frontend && bun run test
+```
+
 ## Building the frontend
 
 ```bash
@@ -121,8 +128,8 @@ This uses `@sveltejs/adapter-node` and emits a Node/Bun-runnable server under
 - **Conventional Commits** for commit messages and PR titles, e.g.
   `feat(frontend): add language switcher`, `fix(backend): clear notified_at on snooze`,
   `docs: add self-hosting guide`.
-- Before opening the PR, run `bun run test` in `backend/` and `bun run build` in
-  `frontend/`. CI runs both, plus `docker compose build`.
+- Before opening the PR, run `bun run test` in `backend/`, and `bun run test` and
+  `bun run build` in `frontend/`. CI runs all three, plus `docker compose build`.
 - New UI strings go in `frontend/messages/en.json` (and `it.json`); see
   [docs/i18n.md](docs/i18n.md).
 - Explain the *why* in the PR description, not just the *what*.
