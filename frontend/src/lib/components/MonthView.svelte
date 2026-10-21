@@ -3,6 +3,7 @@
   import { scopeFilter } from '$lib/stores/scope';
   import { searchFilter } from '$lib/stores/search';
   import { monthLabel as fmtMonthLabel, fmtWeekdayDayMonthLong } from '$lib/format';
+  import { dueOn } from '$lib/time';
   import { getLocale } from '$lib/i18n';
   import * as m from '$lib/paraglide/messages';
   import TaskCard from './TaskCard.svelte';
@@ -32,7 +33,7 @@
 
   const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
   const inCursorMonth = (d: Date) => d.getMonth() === cursor.getMonth();
-  const byDay = (day: Date) => $tasks.filter((t: Task) => $scopeFilter(t) && $searchFilter(t) && isSameDay(new Date(t.due_at), day));
+  const byDay = (day: Date) => $tasks.filter((t: Task) => $scopeFilter(t) && $searchFilter(t) && dueOn(t, day));
 
   function shift(n: number) {
     const d = new Date(cursor); d.setMonth(d.getMonth() + n); cursor = d; selectedDay = null;

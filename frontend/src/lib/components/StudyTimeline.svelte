@@ -3,8 +3,8 @@
   import { fly } from 'svelte/transition';
   import { tasks, selectedTaskId } from '$lib/stores/tasks';
   import { config } from '$lib/stores/config';
-  import { fmtDayMonth, fmtDateTime } from '$lib/format';
-  import { sameDay } from '$lib/time';
+  import { fmtDayMonth, fmtDueDateTime } from '$lib/format';
+  import { sameDay, dueMs, cmpDue } from '$lib/time';
   import Icon from './Icon.svelte';
   import * as m from '$lib/paraglide/messages';
   import {
@@ -45,8 +45,8 @@
     if (!subs.length) return null;
     let start = Infinity, end = -Infinity;
     for (const s of subs) {
-      start = Math.min(start, s.start_date ? Date.parse(s.start_date) : now.getTime());
-      end = Math.max(end, Date.parse(s.exam_date));
+      start = Math.min(start, s.start_date ? dueMs(s.start_date) : now.getTime());
+      end = Math.max(end, dueMs(s.exam_date));
     }
     return { start, end };
   });
@@ -55,7 +55,7 @@
   function posOf(iso: string, s: StudySubject): number {
     if (mode === 'shared' && gWin) {
       const span = gWin.end - gWin.start;
-      return span > 0 ? clampPct(((Date.parse(iso) - gWin.start) / span) * 100) : 0;
+      return span > 0 ? clampPct(((dueMs(iso) - gWin.start) / span) * 100) : 0;
     }
     return axisPos(iso, s.start_date, s.exam_date, now);
   }
@@ -77,20 +77,20 @@
       const topics = topicsOf($tasks as Task[], s.key);
       const review = reviewDaysOf(s, $config);
       const pace = paceOf(topics, s.start_date, s.exam_date, review, now);
-      const reviewStartIso = new Date(Date.parse(s.exam_date) - review * DAY).toISOString();
-      const startMs = s.start_date ? Date.parse(s.start_date) : now.getTime();
+      const reviewStartIso = new Date(dueMs(s.exam_date) - review * DAY).toISOString();
+      const startMs = s.start_date ? dueMs(s.start_date) : now.getTime();
       const wallPos = posOf(s.exam_date, s);
       const reviewLeft = posOf(reviewStartIso, s);
       const dots = topics
         .slice()
-        .sort((a, b) => a.due_at.localeCompare(b.due_at))
+        .sort(cmpDue)
         .map((t) => ({ pos: posOf(t.due_at, s), state: topicState(t, now), task: t }));
       return {
         key: s.key, label: s.label, icon: s.icon, color: s.color,
         exam: s.exam_date, days: daysUntil(s.exam_date, now),
         reviewLeft, reviewWidth: Math.max(0, wallPos - reviewLeft), wallPos,
         nowPos: posOf(now.toISOString(), s),
-        dots, ticks: ticksFor(startMs, Date.parse(s.exam_date), (iso) => posOf(iso, s), now),
+        dots, ticks: ticksFor(startMs, dueMs(s.exam_date), (iso) => posOf(iso, s), now),
         pct: pace.pct, expectedPct: pace.expectedPct, status: pace.status,
         done: pace.done, total: pace.total, plannedDueByNow: pace.plannedDueByNow,
       };
@@ -102,7 +102,7 @@
     const subs = subjectsOf($config);
     if (!subs.length) return [];
     const span = gWin.end - gWin.start;
-    return ticksFor(gWin.start, gWin.end, (iso) => span > 0 ? clampPct(((Date.parse(iso) - gWin.start) / span) * 100) : 0, now);
+    return ticksFor(gWin.start, gWin.end, (iso) => span > 0 ? clampPct(((dueMs(iso) - gWin.start) / span) * 100) : 0, now);
   });
   const globalNowPos = $derived(gWin ? clampPct(((now.getTime() - gWin.start) / (gWin.end - gWin.start)) * 100) : 0);
 
@@ -177,7 +177,7 @@
           <span class="name">{l.label}</span>
           <span class="exam">
             <b class:soon={l.days >= 0 && l.days <= 7} class:over={l.days < 0}>{countdown(l.days)}</b>
-            <span class="date">{m.study_exam()} · {fmtDayMonth(new Date(l.exam))}</span>
+            <span class="date">{m.study_exam()} · {fmtDayMonth(new Date(dueMs(l.exam)))}</span>
           </span>
         </div>
 
@@ -205,7 +205,7 @@
           {#if l.reviewWidth > 0}
             <span class="review" style={`left:${l.reviewLeft}%; width:${l.reviewWidth}%`} title={m.study_lg_review()}></span>
           {/if}
-          <span class="wall" style={`left:${l.wallPos}%`} title={`${m.study_lg_exam()} · ${fmtDayMonth(new Date(l.exam))}`}>
+          <span class="wall" style={`left:${l.wallPos}%`} title={`${m.study_lg_exam()} · ${fmtDayMonth(new Date(dueMs(l.exam)))}`}>
             {#if info}<small class="tag">{m.study_exam()}</small>{/if}
           </span>
           <span class="now" style={`left:${l.nowPos}%`} title={m.study_lg_today()}>
@@ -213,7 +213,7 @@
           </span>
           {#each l.dots as d (d.task.id)}
             <button class={`dot ${d.state}`} style={`left:${d.pos}%`}
-              title={`${d.task.title} · ${fmtDayMonth(new Date(d.task.due_at))}`}
+              title={`${d.task.title} · ${fmtDayMonth(new Date(dueMs(d.task.due_at)))}`}
               onmouseenter={() => enter(l, d, li === 0)} onmouseleave={leave}
               onfocus={() => enter(l, d, li === 0)} onblur={leave}
               onclick={() => selectedTaskId.set(d.task.id)} aria-label={d.task.title}></button>
@@ -230,7 +230,7 @@
               <div class="pmeta">
                 <span class="pdue" class:over={p.state === 'overdue'} class:done={p.state === 'done'}>
                   <Icon name={p.state === 'done' ? 'check' : 'clock'} size={12} />
-                  {p.state === 'done' ? m.status_done() : m.tl_due()} {fmtDateTime(new Date(p.task.due_at))}
+                  {p.state === 'done' ? m.status_done() : m.tl_due()} {fmtDueDateTime(p.task.due_at)}
                 </span>
               </div>
               {#if p.task.summary}<p class="psum">{p.task.summary}</p>{/if}

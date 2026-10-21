@@ -3,10 +3,10 @@
   import { tasks, selectedTaskId } from '$lib/stores/tasks';
   import { scopeFilter } from '$lib/stores/scope';
   import type { Task } from '$lib/types';
-  import { isOpen, isOverdue, sameDay, startOfDay, addDays, hasDue } from '$lib/time';
+  import { isOpen, isOverdue, sameDay, startOfDay, addDays, dueOn, parseDue, dueMs, dueDeadline, isPastDue, cmpDue } from '$lib/time';
   import { config, categoryMeta, taskColor } from '$lib/stores/config';
   import { subjectsOf, daysUntil } from '$lib/study';
-  import { fmtWeekdayTime, fmtDayMonth } from '$lib/format';
+  import { fmt, fmtWeekdayTime, fmtDayMonth } from '$lib/format';
   import { getLocale } from '$lib/i18n';
   import * as m from '$lib/paraglide/messages';
   import Icon from './Icon.svelte';
@@ -20,7 +20,7 @@
 
   const open = $derived(($tasks as Task[]).filter((t) => $scopeFilter(t)));
 
-  const todaySet = $derived(open.filter((t) => sameDay(new Date(t.due_at), now)));
+  const todaySet = $derived(open.filter((t) => dueOn(t, now)));
   const doneToday = $derived(todaySet.filter((t) => t.status === 'done').length);
   const totalToday = $derived(todaySet.length);
   const pct = $derived(totalToday ? Math.round((doneToday / totalToday) * 100) : 0);
@@ -34,16 +34,22 @@
 
   const nextUp = $derived(
     open
-      .filter((t) => isOpen(t) && new Date(t.due_at) >= now)
-      .sort((a, b) => a.due_at.localeCompare(b.due_at))[0] ?? null
+      .filter((t) => isOpen(t) && !!t.due_at && !isPastDue(t.due_at, now))
+      .sort(cmpDue)[0] ?? null
   );
 
   // Nearest upcoming exam (study mode); null when no subjects are configured.
   const nextExam = $derived(subjectsOf($config).find((s) => daysUntil(s.exam_date, now) >= 0) ?? null);
 
   function countdown(iso: string): string {
-    const ms = new Date(iso).getTime() - now.getTime();
-    if (ms < 0) return m.overdue();
+    const d = parseDue(iso);
+    if (!d || dueDeadline(d) <= now.getTime()) return m.overdue();
+    if (d.allDay) {
+      // A whole-day due counts in calendar days: "today", "tomorrow", "in 3 days".
+      const days = Math.round((d.at.getTime() - startOfDay(now).getTime()) / 86_400_000);
+      return new Intl.RelativeTimeFormat(getLocale(), { numeric: 'auto', style: 'short' }).format(days, 'day');
+    }
+    const ms = d.at.getTime() - now.getTime();
     const rtf = new Intl.RelativeTimeFormat(getLocale(), { numeric: 'always', style: 'short' });
     const min = Math.round(ms / 60000);
     if (min < 60) return rtf.format(min, 'minute');
@@ -51,7 +57,11 @@
     if (h < 24) return rtf.format(h, 'hour');
     return rtf.format(Math.round(h / 24), 'day');
   }
-  const fmtTime = (iso: string) => fmtWeekdayTime(iso);
+  const fmtTime = (iso: string) => {
+    const d = parseDue(iso);
+    if (!d) return '';
+    return d.allDay ? fmt(d.at, { weekday: 'short', day: '2-digit', month: 'short' }) : fmtWeekdayTime(d.at);
+  };
 
   // Donut geometry.
   const R = 34;
@@ -64,14 +74,14 @@
   const stripStart = $derived(startOfDay(now).getTime());
   const stripEnd = $derived(addDays(startOfDay(now), STRIP_DAYS).getTime());
   const stripPct = (iso: string) =>
-    Math.min(100, Math.max(0, ((new Date(iso).getTime() - stripStart) / (stripEnd - stripStart)) * 100));
+    Math.min(100, Math.max(0, ((dueMs(iso) - stripStart) / (stripEnd - stripStart)) * 100));
   const nowPct = $derived(((now.getTime() - stripStart) / (stripEnd - stripStart)) * 100);
 
   const cats = $derived.by(() => {
     const map = new Map<string, Task[]>();
     for (const t of open) {
-      if (!hasDue(t)) continue; // general tasks have no date to place on the strip
-      const due = new Date(t.due_at).getTime();
+      if (!t.due_at) continue; // general tasks have no date to place on the strip
+      const due = dueMs(t.due_at);
       if (due < stripStart || due > stripEnd) continue; // only the visible window
       const key = (t.services?.[0] ?? '').toLowerCase() || '_other';
       const arr = map.get(key) ?? (map.set(key, []), map.get(key)!);
@@ -82,9 +92,9 @@
         key,
         label: key === '_other' ? m.dash_other() : categoryMeta(key, $config).label,
         icon: key === '_other' ? 'dot' : categoryMeta(key, $config).icon,
-        tasks: ts.sort((a, b) => a.due_at.localeCompare(b.due_at)),
+        tasks: ts.sort(cmpDue),
       }))
-      .sort((a, b) => a.tasks[0].due_at.localeCompare(b.tasks[0].due_at));
+      .sort((a, b) => cmpDue(a.tasks[0], b.tasks[0]));
   });
   const dotClass = (t: Task) =>
     t.status === 'done' ? 'done' : isOverdue(t) ? 'late' : '';
@@ -138,7 +148,7 @@
       <span class="lbl">{m.study_next_exam()}</span>
       <a class="next-task" href="/timeline">
         <span class="t">{nextExam.label}</span>
-        <span class="meta">{fmtDayMonth(new Date(nextExam.exam_date))} · <em>{countdown(nextExam.exam_date)}</em></span>
+        <span class="meta">{fmtDayMonth(parseDue(nextExam.exam_date)?.at ?? nextExam.exam_date)} · <em>{countdown(nextExam.exam_date)}</em></span>
       </a>
     </div>
   {/if}

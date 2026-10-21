@@ -10,9 +10,9 @@
   import { tagIcon } from '$lib/services';
   import { config, categories, categoryMeta, people, personFor, clients, clientFor, taskRepo, requesterMatches, clientMatches } from '$lib/stores/config';
   import { isHidden, hiddenScope, defaultScope } from '$lib/stores/scope';
-  import { relativeTime, hasDue, startOfDay } from '$lib/time';
+  import { relativeTime, hasDue, startOfDay, parseDue, isPastDue } from '$lib/time';
   import { getLocale } from '$lib/i18n';
-  import { fmtFull as fmtFullDate, fmtDateTime, fmtDayTimeNum, statusLabel } from '$lib/format';
+  import { fmtFull, fmtDueFull, fmtDueNum, fmtDateTime, statusLabel } from '$lib/format';
   import * as m from '$lib/paraglide/messages';
   import Icon from './Icon.svelte';
   import ScopeIcon from './ScopeIcon.svelte';
@@ -29,10 +29,11 @@
   // time, so "tomorrow at 09:00" reads as 1 day even if it is 15 hours away; passing
   // the exact hour is what turns it red.
   const dueIn = $derived.by(() => {
-    if (!task || !hasDue(task)) return null;
-    const due = new Date(task.due_at);
+    const parsed = task ? parseDue(task.due_at) : null;
+    if (!task || !parsed) return null;
+    const due = parsed.at;
     const now = new Date();
-    if (due.getTime() < now.getTime()) return { tone: 'late', label: m.overdue() };
+    if (isPastDue(task.due_at, now)) return { tone: 'late', label: m.overdue() };
     const days = Math.round((startOfDay(due).getTime() - startOfDay(now).getTime()) / 86400000);
     const rtf = new Intl.RelativeTimeFormat(getLocale(), { numeric: 'auto', style: 'long' });
     return { tone: days > 3 ? 'ok' : 'soon', label: rtf.format(days, 'day') };
@@ -420,12 +421,11 @@
   }
 
   function toLocalInput(iso: string): string {
-    const d = new Date(iso);
+    const d = parseDue(iso)?.at ?? new Date(iso);
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
-  const fmtFull = (iso: string) => fmtFullDate(iso);
   const fmtNoteTime = (iso: string) => fmtDateTime(iso);
   function noteLabel(k: Note['kind']) {
     return k === 'file' ? m.note_file() : k === 'link' ? m.note_link() : m.note_text();
@@ -542,7 +542,7 @@
               {:else}
                 <span class="due-wrap">
                   <button type="button" class="due-btn" onclick={openDuePicker} title={m.td_change_deadline()}>
-                    <Icon name="calendar" size={13} /> {hasDue(task) ? fmtFull(task.due_at) : m.no_deadline()}
+                    <Icon name="calendar" size={13} /> {hasDue(task) ? fmtDueFull(task.due_at) : m.no_deadline()}
                   </button>
                   <input class="due-native" type="datetime-local" bind:this={dueInput} tabindex="-1"
                     onchange={(e) => saveDue(e.currentTarget.value)} />
@@ -712,7 +712,7 @@
                       onmouseenter={() => depCursor = i} onclick={() => addDep(c.id)}>
                       <span class="st-ico st-{c.status}"><Icon name={STATUS_ICON[c.status] ?? 'dot'} size={12} /></span>
                       <span class="dep-title">{c.title}</span>
-                      {#if hasDue(c)}<span class="dep-due">{fmtDayTimeNum(c.due_at)}</span>{/if}
+                      {#if hasDue(c)}<span class="dep-due">{fmtDueNum(c.due_at)}</span>{/if}
                     </button>
                   </li>
                 {:else}

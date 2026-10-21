@@ -8,7 +8,7 @@
   import type { Task } from '$lib/types';
   import {
     bucket, BUCKET_ORDER, barKind, barEndDate, hasDue,
-    startOfDay, addDays, sameDay, type BarKind,
+    startOfDay, addDays, sameDay, cmpDue, type BarKind,
   } from '$lib/time';
   import { config, taskColor } from '$lib/stores/config';
 
@@ -177,7 +177,7 @@
       const key = b.task.status === 'done' ? 'done' : bucket(b.task, now);
       (g[key] ??= []).push(b);
     }
-    for (const k of Object.keys(g)) g[k].sort((a, b) => a.task.due_at.localeCompare(b.task.due_at));
+    for (const k of Object.keys(g)) g[k].sort((a, b) => cmpDue(a.task, b.task));
     return g;
   });
 

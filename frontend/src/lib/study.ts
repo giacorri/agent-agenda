@@ -2,6 +2,7 @@
 // subject the countdown, progress and pace shown in the sidebar and the study
 // timeline. Pure functions (mirror of the backend's study.ts) — no stores here.
 import type { Task, Category, ConfigBundle, ScopeDef } from './types';
+import { dueMs, isPastDue } from './due';
 
 const DAY = 86_400_000;
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
@@ -36,7 +37,7 @@ export function reviewDaysOf(s: StudySubject, c: ConfigBundle): number {
 
 // Whole days from now to the exam (negative = past).
 export function daysUntil(iso: string, now: Date = new Date()): number {
-  return Math.ceil((Date.parse(iso) - now.getTime()) / DAY);
+  return Math.ceil((dueMs(iso) - now.getTime()) / DAY);
 }
 
 export interface Progress { done: number; total: number; pct: number; }
@@ -59,11 +60,11 @@ export function paceOf(
 ): Pace {
   const nowMs = now.getTime();
   const { done, total, pct } = progressOf(topics);
-  const rawStart = startIso ? Date.parse(startIso) : nowMs;
-  const end = Date.parse(examIso) - reviewDays * DAY;
+  const rawStart = startIso ? dueMs(startIso) : nowMs;
+  const end = dueMs(examIso) - reviewDays * DAY;
   const span = end - rawStart;
   const expectedPct = span > 0 ? clamp01((nowMs - rawStart) / span) : 1;
-  const plannedDueByNow = topics.filter((t) => Date.parse(t.due_at) <= nowMs).length;
+  const plannedDueByNow = topics.filter((t) => dueMs(t.due_at) <= nowMs).length;
   const behindBy = Math.max(0, plannedDueByNow - done);
 
   let status: PaceStatus;
@@ -79,14 +80,14 @@ export function paceOf(
 // A topic's dot state on the per-exam timeline.
 export function topicState(t: Task, now: Date = new Date()): 'done' | 'overdue' | 'pending' {
   if (t.status === 'done') return 'done';
-  return Date.parse(t.due_at) < now.getTime() ? 'overdue' : 'pending';
+  return isPastDue(t.due_at, now) ? 'overdue' : 'pending';
 }
 
 // Position (0-100%) of a moment within a subject's [start … exam] axis.
 export function axisPos(iso: string, startIso: string | null, examIso: string, now: Date = new Date()): number {
-  const start = startIso ? Date.parse(startIso) : now.getTime();
-  const exam = Date.parse(examIso);
+  const start = startIso ? dueMs(startIso) : now.getTime();
+  const exam = dueMs(examIso);
   const span = exam - start;
   if (span <= 0) return 100;
-  return clamp01((Date.parse(iso) - start) / span) * 100;
+  return clamp01((dueMs(iso) - start) / span) * 100;
 }

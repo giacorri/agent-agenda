@@ -6,7 +6,7 @@
   import { fmtDayMonth } from '$lib/format';
   import { renderMarkdown } from '$lib/markdown';
   import { taskRepo } from '$lib/stores/config';
-  import { sameDay } from '$lib/time';
+  import { sameDay, dueMs, cmpDue } from '$lib/time';
   import Icon from './Icon.svelte';
   import * as m from '$lib/paraglide/messages';
   import {
@@ -48,7 +48,7 @@
   );
   const meta = $derived(categoryMeta(subjectKey, $config));
   const topics = $derived(
-    topicsOf($tasks as Task[], subjectKey).slice().sort((a, b) => a.due_at.localeCompare(b.due_at))
+    topicsOf($tasks as Task[], subjectKey).slice().sort(cmpDue)
   );
 
   const STATUS_LABEL: Record<TaskStatus, () => string> = {
@@ -67,8 +67,8 @@
     }
     const review = reviewDaysOf(s, $config);
     const nowMs = now.getTime();
-    const examMs = Date.parse(s.exam_date);
-    const dues = topics.map((t) => Date.parse(t.due_at));
+    const examMs = dueMs(s.exam_date);
+    const dues = topics.map((t) => dueMs(t.due_at));
     // Axis starts at the first activity (not the far-back course start) so the view
     // doesn't open with a big empty stretch above the first topic.
     const start = Math.min(nowMs, ...dues) - DAY / 2;
@@ -104,7 +104,7 @@
     // Greedy lane packing so tiles never overlap along the time axis.
     const laneEnd: number[] = [];
     const cards: Card[] = topics.map((t) => {
-      const main = posU(Date.parse(t.due_at)) * mainLen;
+      const main = posU(dueMs(t.due_at)) * mainLen;
       const s0 = Math.max(0, Math.min(main - extent / 2, mainLen - extent));
       let lane = laneEnd.findIndex((e) => s0 >= e + GAP);
       if (lane === -1) { lane = laneEnd.length; laneEnd.push(0); }
@@ -181,7 +181,7 @@
 
 {#snippet tile(c: Card, big: boolean)}
   <div class="chead">
-    <span class="date">{fmtDayMonth(new Date(c.task.due_at))}</span>
+    <span class="date">{fmtDayMonth(new Date(dueMs(c.task.due_at)))}</span>
     <span class="pill {c.task.status}">{STATUS_LABEL[c.task.status]()}</span>
   </div>
   <div class="ctitle" class:big>{c.task.title}</div>
@@ -221,7 +221,7 @@
       {/if}
       {#if subject}
         <span class="marker exam" style={markerStyle(layout.uExam)}>
-          <small class="mk-tag exam"><Icon name="calendar" size={11} /> {m.study_exam()} · {fmtDayMonth(new Date(subject.exam_date))}</small>
+          <small class="mk-tag exam"><Icon name="calendar" size={11} /> {m.study_exam()} · {fmtDayMonth(new Date(dueMs(subject.exam_date)))}</small>
         </span>
       {/if}
       <span class="marker today" style={markerStyle(layout.uNow)}>
@@ -233,7 +233,7 @@
       {/each}
 
       {#each layout.cards as c (c.task.id)}
-        {#if !isH}<span class="vdate" style={gutterStyle(c)}>{fmtDayMonth(new Date(c.task.due_at))}</span>{/if}
+        {#if !isH}<span class="vdate" style={gutterStyle(c)}>{fmtDayMonth(new Date(dueMs(c.task.due_at)))}</span>{/if}
         <span class="dot {c.state}" class:on={hover?.task.id === c.task.id} style={dotStyle(c)}></span>
         <span class="link" style={linkStyle(c)}></span>
         <button class="card {c.state}" style={tileStyle(c)}
@@ -259,7 +259,7 @@
   {#if subject && topics.length}
     <div class="foot">
       <span class="exam-chip" class:soon={examDays >= 0 && examDays <= 7} class:over={examDays < 0}>
-        <Icon name="calendar" size={13} /> {m.study_exam()} {fmtDayMonth(new Date(subject.exam_date))}
+        <Icon name="calendar" size={13} /> {m.study_exam()} {fmtDayMonth(new Date(dueMs(subject.exam_date)))}
         · {examDays === 0 ? m.study_today() : examDays < 0 ? `${-examDays}${m.study_days_suffix()} ${m.study_overdue()}` : `${m.study_in()} ${examDays}${m.study_days_suffix()}`}
       </span>
       <span class="legend"><i class="lg review"></i> {m.study_lg_review()}</span>

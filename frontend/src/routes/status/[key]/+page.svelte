@@ -3,7 +3,7 @@
   import { tasks } from '$lib/stores/tasks';
   import { scopeFilter } from '$lib/stores/scope';
   import { searchFilter, searchActive, query } from '$lib/stores/search';
-  import { isOpen, isOverdue } from '$lib/time';
+  import { isOpen, isOverdue, cmpDue } from '$lib/time';
   import * as m from '$lib/paraglide/messages';
   import TaskCard from '$lib/components/TaskCard.svelte';
   import Icon from '$lib/components/Icon.svelte';
@@ -22,8 +22,8 @@
   const done = $derived(scoped.filter((t) => t.status === 'done').sort(byDueDesc));
   const total = $derived(isDone ? done.length : open.length + overdue.length);
 
-  function byDue(a: Task, b: Task) { if (!a.due_at) return b.due_at ? 1 : 0; if (!b.due_at) return -1; return a.due_at.localeCompare(b.due_at); }
-  function byDueDesc(a: Task, b: Task) { return b.due_at.localeCompare(a.due_at); }
+  const byDue = cmpDue;
+  const byDueDesc = (a: Task, b: Task) => cmpDue(b, a);
 </script>
 
 <div class="view">

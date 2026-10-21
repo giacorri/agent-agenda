@@ -7,7 +7,7 @@
   import { tagIcon } from '$lib/services';
   import { config, categoryMeta, personFor, clientFor, taskRepo } from '$lib/stores/config';
   import { isHidden } from '$lib/stores/scope';
-  import { isOverdue, isOverdueBucket, relativeTime, hasDue } from '$lib/time';
+  import { isOverdue, isOverdueBucket, relativeTime, parseDue } from '$lib/time';
   import { fmtDayNum, fmtTime, bucketLabel, bucketAgeLabel } from '$lib/format';
   import * as m from '$lib/paraglide/messages';
   import Icon from './Icon.svelte';
@@ -31,6 +31,7 @@
   // Default repo for bare refs (#98, PR#98) in this task's text, from its tags/services.
   const repo = $derived(taskRepo(task));
 
+  const due = $derived(parseDue(task.due_at));
   const overdue = $derived(isOverdue(task));
   const late = $derived(overdue);
   const inProgress = $derived(task.status === 'in_progress');
@@ -200,9 +201,9 @@
         <!-- Times are rarely meaningful here, so the pill shows just the date; the bucket
              keeps its colour and moves to the tooltip. -->
         {#if badgeBucket && !(late && !isOverdueBucket(badgeBucket))}
-          <span class="age-badge age-{badgeBucket}" title={badgeText}>{hasDue(task) ? fmtDayNum(task.due_at) : badgeText}</span>
-        {:else if hasDue(task)}
-          <span class="when">{dense ? fmtTime(task.due_at) : fmtDayNum(task.due_at)}</span>
+          <span class="age-badge age-{badgeBucket}" title={badgeText}>{due ? fmtDayNum(due.at) : badgeText}</span>
+        {:else if due}
+          <span class="when">{dense ? (due.allDay ? m.tl_all_day() : fmtTime(due.at)) : fmtDayNum(due.at)}</span>
         {/if}
       </span>
       <span class="who">

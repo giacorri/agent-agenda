@@ -3,6 +3,7 @@
 // One central place instead of 13 scattered 'it-IT' literals.
 import { getLocale } from '$lib/i18n';
 import * as m from '$lib/paraglide/messages';
+import { parseDue } from '$lib/due';
 
 // 'en' | 'it' are valid BCP-47 tags, so they pass straight to Intl.
 const tag = (): string => getLocale();
@@ -43,6 +44,23 @@ export const monthLabel = (d: string | Date): string =>
   fmt(d, { month: 'long', year: 'numeric' });
 export const monthLong = (d: string | Date): string =>
   fmt(d, { month: 'long' });
+
+// A task's due, formatted without the meaningless 00:00 of a date-only due.
+export function fmtDueNum(due: string): string {
+  const d = parseDue(due);
+  if (!d) return '';
+  return d.allDay ? fmtDayNum(d.at) : fmtDayTimeNum(d.at);
+}
+export function fmtDueDateTime(due: string): string {
+  const d = parseDue(due);
+  if (!d) return '';
+  return d.allDay ? fmtDayMonth(d.at) : fmtDateTime(d.at);
+}
+export function fmtDueFull(due: string): string {
+  const d = parseDue(due);
+  if (!d) return '';
+  return d.allDay ? fmt(d.at, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : fmtFull(d.at);
+}
 
 // ---- key → translated label (decoupled from grouping keys, see #20) -------
 const BUCKET_LABELS: Record<string, () => string> = {

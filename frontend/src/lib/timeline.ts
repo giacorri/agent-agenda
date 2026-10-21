@@ -1,28 +1,11 @@
 // Day-by-day grouping for the timeline's default view. Pure (no stores, no i18n)
 // so it can be unit-tested: callers pass `now` and translate the section keys.
 import type { Task } from './types';
+import { parseDue, type Due } from './due';
+
+export { parseDue, type Due };
 
 const DAY_MS = 86_400_000;
-
-export interface Due {
-  /** The due instant; for a date-only due, local midnight of that day. */
-  at: Date;
-  /** True for a date-only `YYYY-MM-DD` due: "that day", no time of day. */
-  allDay: boolean;
-}
-
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-// `new Date('2026-10-21')` is UTC midnight, which lands on the previous day west of
-// UTC: a date-only due must be read as a local calendar day instead.
-export function parseDue(due: string): Due | null {
-  if (!due) return null;
-  const m = DATE_ONLY.exec(due);
-  if (m) return { at: new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])), allDay: true };
-  const at = new Date(due);
-  return Number.isNaN(at.getTime()) ? null : { at, allDay: false };
-}
-
 const dayStart = (d: Date): Date => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const plusDays = (d: Date, n: number): Date => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 // Whole calendar days between two local midnights (DST-safe via rounding).

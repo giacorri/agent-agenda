@@ -1,4 +1,5 @@
 import { writable, derived } from 'svelte/store';
+import { cmpDueAt } from '$lib/due';
 import type { Task } from '$lib/types';
 import { api } from '$lib/api';
 import { onWs } from '$lib/ws';
@@ -18,11 +19,7 @@ export const pending = derived(tasks, ($t) => $t.filter(t => t.status === 'pendi
 export const completed = derived(tasks, ($t) => $t.filter(t => t.status === 'done').sort(byDue));
 
 // No-deadline tasks ('' due_at) sort after dated ones instead of jumping to the top.
-function byDue(a: Task, b: Task) {
-  if (!a.due_at) return b.due_at ? 1 : 0;
-  if (!b.due_at) return -1;
-  return a.due_at.localeCompare(b.due_at);
-}
+const byDue = (a: Task, b: Task) => cmpDueAt(a.due_at, b.due_at);
 
 function upsert(list: Task[], t: Task): Task[] {
   const i = list.findIndex(x => x.id === t.id);

@@ -1,5 +1,8 @@
 import type { Task } from './types';
 import { getLocale } from './i18n';
+import { parseDue, isPastDue, cmpDueAt } from './due';
+
+export { parseDue, dueDate, dueMs, dueDeadline, isPastDue, cmpDueAt, type Due } from './due';
 
 // The work/personal "hidden scope" concept now lives in stores/scope.ts
 // (isHidden), driven by the configurable scopes — see issue #7.
@@ -46,19 +49,22 @@ export const isClosed = (t: Task): boolean =>
 // backlog item: no reminders, grouped separately, sorted by insertion date.
 export const hasDue = (t: Task): boolean => !!t.due_at;
 
-// Sort helper that keeps no-deadline tasks after dated ones (their '' would sort first).
-export const cmpDue = (a: Task, b: Task): number => {
-  if (!a.due_at) return b.due_at ? 1 : 0;
-  if (!b.due_at) return -1;
-  return a.due_at.localeCompare(b.due_at);
+// True when the task is due on that local calendar day.
+export const dueOn = (t: Task, day: Date): boolean => {
+  const d = parseDue(t.due_at);
+  return !!d && sameDay(d.at, day);
 };
+
+// Sort helper that keeps no-deadline tasks after dated ones (their '' would sort first).
+export const cmpDue = (a: Task, b: Task): number => cmpDueAt(a.due_at, b.due_at);
 
 // General tasks are ordered by when they were added (oldest first).
 export const cmpInserted = (a: Task, b: Task): number => a.created_at.localeCompare(b.created_at);
 
-// "Missed" is computed, not a stored status: an open task whose due time is already past.
-export const isOverdue = (t: Task): boolean =>
-  hasDue(t) && isOpen(t) && new Date(t.due_at).getTime() < Date.now();
+// "Missed" is computed, not a stored status: an open task whose due time is already
+// past (a date-only due only once its whole day is over).
+export const isOverdue = (t: Task, now: Date = new Date()): boolean =>
+  isOpen(t) && isPastDue(t.due_at, now);
 
 // Stable, language-neutral grouping keys; translate to display labels only at
 // render (see bucketLabel in $lib/format). Order is chronological top-to-bottom:
@@ -76,8 +82,9 @@ export const OVERDUE_BUCKETS: ReadonlySet<string> =
 export const isOverdueBucket = (key: string): boolean => OVERDUE_BUCKETS.has(key);
 
 export function bucket(t: Task, now: Date = new Date()): string {
-  if (!hasDue(t)) return 'general'; // no deadline → the General backlog group
-  const due = new Date(t.due_at);
+  const parsed = parseDue(t.due_at);
+  if (!parsed) return 'general'; // no deadline → the General backlog group
+  const due = parsed.at;
   // Same-day work stays under "today"/"tomorrow" even if the clock time is past.
   if (sameDay(due, now)) return 'today';
   if (sameDay(due, addDays(now, 1))) return 'tomorrow';
@@ -107,4 +114,4 @@ export function barKind(t: Task): BarKind {
 
 // Where a task's bar ends on the time axis: completion for done tasks, else the due date.
 export const barEndDate = (t: Task): Date =>
-  new Date(t.status === 'done' && t.completed_at ? t.completed_at : t.due_at);
+  t.status === 'done' && t.completed_at ? new Date(t.completed_at) : (parseDue(t.due_at)?.at ?? new Date(NaN));

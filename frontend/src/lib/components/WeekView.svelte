@@ -3,6 +3,7 @@
   import { scopeFilter } from '$lib/stores/scope';
   import { searchFilter } from '$lib/stores/search';
   import { fmtDayShort, fmtDayMonthLong } from '$lib/format';
+  import { dueOn, cmpDue } from '$lib/time';
   import TaskCard from './TaskCard.svelte';
   import type { Task } from '$lib/types';
 
@@ -20,8 +21,8 @@
 
   const fmtDay = (d: Date) => fmtDayShort(d);
   const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-  const byDay = (day: Date) => $tasks.filter((t: Task) => $scopeFilter(t) && $searchFilter(t) && isSameDay(new Date(t.due_at), day))
-                                       .sort((a, b) => a.due_at.localeCompare(b.due_at));
+  const byDay = (day: Date) => $tasks.filter((t: Task) => $scopeFilter(t) && $searchFilter(t) && dueOn(t, day))
+                                       .sort(cmpDue);
 
   function shift(n: number) {
     const d = new Date(weekStart); d.setDate(d.getDate() + n * 7); weekStart = d;
