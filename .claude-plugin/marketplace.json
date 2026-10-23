@@ -1,0 +1,12 @@
+{
+  "name": "agent-agenda",
+  "description": "The agent-agenda Claude Code plugin.",
+  "owner": { "name": "agent-agenda contributors" },
+  "plugins": [
+    {
+      "name": "agent-agenda",
+      "source": "./",
+      "description": "Skills and shell helpers for a running agent-agenda."
+    }
+  ]
+}

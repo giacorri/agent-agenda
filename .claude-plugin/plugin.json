@@ -1,0 +1,9 @@
+{
+  "name": "agent-agenda",
+  "description": "Skills and shell helpers to read and write a running agent-agenda: capture tasks, log progress, plan next steps, write closing messages.",
+  "author": { "name": "agent-agenda contributors" },
+  "homepage": "https://github.com/giacorri/agent-agenda",
+  "repository": "https://github.com/giacorri/agent-agenda",
+  "license": "MIT",
+  "keywords": ["agenda", "tasks", "memory", "handoff"]
+}

@@ -1,20 +1,10 @@
 ---
 name: handoff-recap
 description: |
-  Write and save the closing handoff message of a task in the connected
-  agent-agenda — the copy-paste block for whoever the work has to be reported to
-  (its `requester`, or whoever will ask for that feature), saying what now works,
-  what they still have to do, and what is left open. Use when a topic is done OR
-  DE-FACTO CLOSED: our part is finished and what remains is not on us (a decision,
-  a database or configuration operation on their side, or simply telling them).
-  Trigger phrases: "the handoff", "basically closed", "only need to tell X",
-  "what do I write to X", "give me the message for X" (or the same request in
-  any language, e.g. "praticamente chiuso"). ALSO use when a next step reads
-  "tell / send / write to <someone>": that step's content IS the closing and
-  belongs in the closing field, never in the plan. Written in short, plain words, in the user's language,
-  in the register spelled out below. Saves it on the task (closing field)
-  AND shows it as one copy-paste block. The skill does NOT send anything: sending
-  is the user's job.
+  Write and save the closing message of a task in the connected agent-agenda: what
+  now works, what the recipient still has to do, what is left open. Use when a topic
+  is done or de-facto closed ("basically closed", "only need to tell X", "what do I
+  write to X"), or when a next step reads "tell / send X". Never sends anything.
 ---
 
 # handoff-recap — the closing message of a task
@@ -153,6 +143,6 @@ bare action survives, without its content.
 number standing in for the context — the four tells the register forbids. And it
 stops at what was done, without saying what the recipient has to do.)
 
-If the agenda scripts are not on PATH, call them by full path from the agenda
-repo's `scripts/` dir, or post to the endpoints under `$AGENDA_URL` (default
+The helpers come with the plugin and are on PATH while it is enabled. Without it, run
+them from the agenda repo's `scripts/`, or post to `$AGENDA_URL/api/ingest/closing` (default
 `http://localhost:4010`).

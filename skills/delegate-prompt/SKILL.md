@@ -1,12 +1,10 @@
 ---
 name: delegate-prompt
 description: |
-  Produce a copy-paste prompt to hand a task (usually one from the connected
-  agent-agenda) to another agent. Read-only: it calls no endpoint and changes
-  nothing — it only generates text. Use when the user says "give me the prompt for
-  this task", "the prompt to delegate this", "hand-off prompt", or after reviewing
-  a task and wanting the block to delegate it. Output is ONE code block: a title
-  line, the repo/context, the steps, and the caveats.
+  Produce one copy-paste prompt (title, repo, context, steps, caveats) to hand a
+  task, usually one from the connected agent-agenda, to another agent. Read-only:
+  changes nothing. Use for "give me the prompt for this task", "the prompt to
+  delegate this", "hand-off prompt".
 ---
 
 # delegate-prompt — a copy-paste prompt to delegate a task

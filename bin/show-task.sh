@@ -1,0 +1,1 @@
+../scripts/show-task.sh

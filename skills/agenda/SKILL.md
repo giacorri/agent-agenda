@@ -1,14 +1,11 @@
 ---
 name: agenda
 description: |
-  Read and maintain the connected agent-agenda as shared work/personal memory.
-  Use when the user says "/agenda", "agenda", "resume from the agenda", "what's
-  left to do", "continue the task", "it was tracked in the agenda" (or the same
-  request in any language, e.g. "riprendi dall'agenda"), asks for
-  current tracked work, or when a task already has agenda state that must be preserved.
-  This skill orients Claude on what agent-agenda is, how to consult it, when to
-  use the companion skills (`add-to-agenda`, `note-progress`, `set-next-steps`,
-  `handoff-recap`, `delegate-prompt`), and how to avoid duplicate tasks.
+  Read and resume the connected agent-agenda: tracked work and personal tasks, each
+  with notes, next steps and a closing message. Use for "/agenda", "what's left to
+  do", "resume from the agenda", "continue the task" (in any language), or when the
+  work already has agenda state to preserve. Routes writes to the companion skills
+  and avoids duplicate tasks.
 ---
 
 # agenda — read and maintain agent-agenda
@@ -70,10 +67,9 @@ When reporting back, keep it short:
 - whether it is personal/work scope if visible in the task data;
 - concrete next action.
 
-When you mention a task in the reply, write it as a markdown link —
-`[title](<AGENDA_UI_URL>/task/<id>)` — which opens the agenda with that task's
-drawer already open. `$AGENDA_UI_URL` is the web app (default
-`http://localhost:4011`), not `$AGENDA_URL`, which is the API.
+Mention a task in the reply as `[title](<AGENDA_UI_URL>/task/<id>)`: it opens the
+agenda on that task. `$AGENDA_UI_URL` is the web app (default `http://localhost:4011`),
+not the API.
 `list-tasks.sh` and `show-task.sh` print the link next to each task.
 
 ## Preserve tracked state

@@ -1,14 +1,10 @@
 ---
 name: set-next-steps
 description: |
-  Rewrite the "next steps" (the forward plan) of a task in the connected
-  agent-agenda. These are the ordered boxes that look forward, distinct from notes
-  (the backward timeline). Use when the plan changes: a step is done, a new one
-  emerges, the order shifts. ALWAYS replaces the whole list, so pass every step you
-  want to keep, in order. To log a step already done use `note-progress` instead;
-  to hand the outcome to whoever asked, use `handoff-recap` — a message to send is
-  never a step.
-  Fast skill: produce the steps, run the command, done.
+  Replace the next steps (the ordered forward plan) of a task in the connected
+  agent-agenda when the plan changes: a step done, a new one, a new order. Full
+  replace: pass every step to keep. A step already done goes in a note (note-
+  progress); a message to send is never a step (handoff-recap).
 ---
 
 # set-next-steps — rewrite the forward plan
@@ -67,13 +63,12 @@ task (earliest due date wins).
 
 ## Citing the task in your reply
 
-When you mention a task in the reply, write it as a markdown link —
-`[title](<AGENDA_UI_URL>/task/<id>)` — which opens the agenda with that task's
-drawer already open. `$AGENDA_UI_URL` is the web app (default
-`http://localhost:4011`), not `$AGENDA_URL`, which is the API.
+Mention a task in the reply as `[title](<AGENDA_UI_URL>/task/<id>)`: it opens the
+agenda on that task. `$AGENDA_UI_URL` is the web app (default `http://localhost:4011`),
+not the API.
 `set-steps.sh` does not print it: build the URL from the id of the
 task you matched.
 
-If `set-steps.sh` is not on PATH, call it by full path from the agenda repo's
-`scripts/` dir, or post directly to `$AGENDA_URL/api/ingest/steps` (default
+The helpers come with the plugin and are on PATH while it is enabled. Without it, run
+them from the agenda repo's `scripts/`, or post to `$AGENDA_URL/api/ingest/steps` (default
 `http://localhost:4010`).

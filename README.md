@@ -132,16 +132,25 @@ The same calls are plain HTTP (`POST /api/ingest`, `/api/ingest/note`,
 `/api/tasks` and `/api/config`). Start with [`AGENTS.md`](AGENTS.md) for when to write
 what, and see [docs/agent-api.md](docs/agent-api.md) for every endpoint and payload.
 
-### Claude Code skills
+### Claude Code plugin
 
-The repository includes skills (`agenda`, `add-to-agenda`, `note-progress`,
-`set-next-steps`, `handoff-recap`, `delegate-prompt`, `tidy-agenda`) in
-[`.claude/skills/`](.claude/skills/). Install them, and link the helper scripts into
-`~/.local/bin`, with:
+The repository is a Claude Code plugin marketplace. Its `agent-agenda` plugin bundles the
+skills (`agenda`, `add-to-agenda`, `note-progress`, `set-next-steps`, `handoff-recap`,
+`delegate-prompt`, `tidy-agenda`, in [`skills/`](skills/)) and the helper scripts:
 
 ```bash
-scripts/install-claude-skills.sh
+claude plugin marketplace add giacorri/agent-agenda
+claude plugin install agent-agenda@agent-agenda
 ```
+
+The skills show up as `agent-agenda:<name>` (for example `/agent-agenda:agenda`), and
+the helper scripts are on the Bash tool's `PATH` while the plugin is enabled, so
+nothing goes into `~/.local/bin`. The plugin has no pinned version: it tracks this
+repository's commits. Pull updates with `claude plugin marketplace update agent-agenda`
+followed by `claude plugin update agent-agenda@agent-agenda`, or turn on auto-update for
+the marketplace in `/plugin`. To hack on the skills, add the marketplace from a local
+clone instead (`claude plugin marketplace add ./agent-agenda`): the plugin then loads in
+place and every edit applies at the next session or `/reload-plugins`.
 
 Other agents can read [`AGENTS.md`](AGENTS.md) and call the scripts or the API directly.
 

@@ -39,7 +39,8 @@ start of a session; do not assume any specific value exists.
   `http://localhost:4011`). `<AGENDA_UI_URL>/task/<id>` is a task's deep link: the agenda
   with that task's drawer already open. `add-task.sh`, `show-task.sh` and `list-tasks.sh`
   print it — mention a task to the person as that link.
-- **Scripts on PATH:** the helpers in [`scripts/`](scripts/) wrap the common calls
+- **Scripts on PATH:** the helpers in [`scripts/`](scripts/) (on `PATH` already when the
+  Claude Code plugin is enabled) wrap the common calls
   (`add-task.sh`, `add-note.sh`, `set-steps.sh`, `set-closing.sh`, `set-personal.sh`,
   `list-tasks.sh`, `show-task.sh`, `done-task.sh`, `snooze-task.sh`, `set-title.sh`,
   `set-settings.sh`, …). Each reads `$AGENDA_URL`, builds the JSON for you, and fails non-zero on error.

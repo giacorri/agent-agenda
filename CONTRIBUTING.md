@@ -14,7 +14,9 @@ frontend/           SvelteKit 2 (Svelte 5) app
   src/              routes/ and lib/ (api.ts, ws.ts, stores/, components/)
   messages/         UI strings, one JSON file per language
 scripts/            shell helpers agents use to read and write tasks
-.claude/skills/     installable agent skills (see scripts/install-claude-skills.sh)
+skills/             agent skills, shipped as the Claude Code plugin
+.claude-plugin/     plugin and marketplace manifests
+bin/                links to the helpers the plugin puts on PATH
 docs/               user and agent documentation
 docker-compose.yaml default way to run both services
 ```

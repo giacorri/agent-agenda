@@ -1,0 +1,1 @@
+../scripts/agenda-check.sh

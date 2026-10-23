@@ -1,14 +1,11 @@
 ---
 name: tidy-agenda
 description: |
-  Clean up the connected agent-agenda: verify what is really done, close it, condense
-  every task's notes into ONE short list, simplify steps and titles, merge tasks that
-  are the same thread, and hand back a copy-paste prompt to resume a theme. Use when
-  the user says "tidy the agenda", "agenda cleanup", "clean up the agenda",
-  "what's overdue", "let's go through the agenda and clean it up" (or the same
-  request in any language, e.g. "pulisci l'agenda"), or when the open
-  list is long, overdue and noisy. Works one theme at a time with
-  the user; verification goes to read-only subagents.
+  Clean up the connected agent-agenda one theme at a time: verify what is really
+  done and close it, condense notes, simplify steps and titles, merge duplicate
+  threads, hand back a prompt to resume a theme. Use for "tidy the agenda", "clean
+  up the agenda", "what's overdue" (in any language), or when the open list is long
+  and noisy.
 ---
 
 # tidy-agenda â€” verify, close, condense, merge, resume
@@ -24,6 +21,8 @@ Dump every open task (with notes) to a scratch folder before touching anything â
 condensing deletes notes, and the dump is the only undo:
 
 ```bash
+: "${AGENDA_URL:=http://localhost:4010}"
+SCRATCH="${SCRATCH:-$(mktemp -d)}"; mkdir -p "$SCRATCH/agenda-backup"
 for id in $(curl -s "$AGENDA_URL/api/tasks" | jq -r '.[]|select(.status=="pending" or .status=="in_progress")|.id'); do
   curl -s "$AGENDA_URL/api/tasks/$id" > "$SCRATCH/agenda-backup/$id.json"
 done

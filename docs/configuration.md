@@ -219,8 +219,6 @@ the language.
 | --- | --- | --- |
 | `AGENDA_URL` | backend base URL | `http://localhost:4010` |
 | `AGENDA_UI_URL` | web app URL, used to print task links | `http://localhost:4011` |
-| `CLAUDE_HOME` | where `install-claude-skills.sh` puts skills | `~/.claude` |
-| `AGENDA_BIN_DIR` | where it links the helper scripts | `~/.local/bin` |
 
 With Docker Compose, put overrides such as `TZ=Europe/Berlin` or `NATIVE_NOTIFY=1` in
 a `.env` file next to `docker-compose.yaml`. Changing ports or hostnames is covered in

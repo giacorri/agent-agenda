@@ -1,0 +1,1 @@
+../scripts/set-steps.sh

@@ -1,12 +1,10 @@
 ---
 name: note-progress
 description: |
-  Append ONE timeline note to a tracked task in the connected agent-agenda — the
-  backward "what happened" log. Use when a meaningful milestone happens on a topic
-  already tracked: a decision made, a blocker hit or cleared, a PR opened or merged,
-  an issue closed, a step done, a deploy completed. One note = one milestone, logged
-  the SAME turn it happens. For the forward plan use `set-next-steps`; to create a
-  new task use `add-to-agenda`. Fast skill: write the text, run the command, done.
+  Append ONE timeline note (what happened) to a task in the connected agent-agenda,
+  the same turn a milestone happens: a decision made, a blocker hit or cleared, a PR
+  opened or merged, an issue closed, a step done, a deploy. Forward plan: set-next-
+  steps. New task: add-to-agenda.
 ---
 
 # note-progress — append one timeline note
@@ -135,13 +133,12 @@ says what changed for the user, and the single ref sits at the end as a `PR` lin
 
 ## Citing the task in your reply
 
-When you mention a task in the reply, write it as a markdown link —
-`[title](<AGENDA_UI_URL>/task/<id>)` — which opens the agenda with that task's
-drawer already open. `$AGENDA_UI_URL` is the web app (default
-`http://localhost:4011`), not `$AGENDA_URL`, which is the API.
+Mention a task in the reply as `[title](<AGENDA_UI_URL>/task/<id>)`: it opens the
+agenda on that task. `$AGENDA_UI_URL` is the web app (default `http://localhost:4011`),
+not the API.
 `add-note.sh` does not print it: build the URL from the id of the
 task you matched.
 
-If the agenda scripts are not on PATH, call them by full path from the agenda
-repo's `scripts/` dir, or post directly to `$AGENDA_URL/api/ingest/note` (default
+The helpers come with the plugin and are on PATH while it is enabled. Without it, run
+them from the agenda repo's `scripts/`, or post to `$AGENDA_URL/api/ingest/note` (default
 `http://localhost:4010`).

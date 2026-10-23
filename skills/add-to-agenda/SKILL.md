@@ -1,13 +1,11 @@
 ---
 name: add-to-agenda
 description: |
-  Capture a task / reminder / follow-up into the connected agent-agenda. Use when
-  the user says "remember this", "put it on my agenda", "remind me to...", "track
-  this", "save this task", or when you finish a piece of work and an actionable
-  follow-up with a concrete date remains. This is NOT a generic memory/notes store:
-  if there is nothing to DO in the future, do not propose the agenda. If an open
-  task on the same topic already exists, append a note to it (skill `note-progress`)
-  instead of creating a duplicate.
+  Create a task, reminder or follow-up in the connected agent-agenda. Use for
+  "remember this", "put it on my agenda", "remind me to...", "track this", or when
+  finished work leaves an actionable follow-up. Not a notes store: nothing to do in
+  the future means no task. Topic already tracked: add a note with note-progress
+  instead.
 ---
 
 # add-to-agenda — capture a task into agent-agenda
@@ -183,8 +181,8 @@ Repeat `--service`, `--tag`, `--step`, `--person` as needed.
 pass `--personal` (or `personal:true` in a raw `/api/ingest` POST) for their tasks; everything
 else stays `work`.
 
-If `add-task.sh` is not on PATH, call it by its full path in the agenda repo's
-`scripts/` dir, or post directly to `$AGENDA_URL/api/ingest` (default
+The helpers come with the plugin and are on PATH while it is enabled. Without it, run
+them from the agenda repo's `scripts/`, or post to `$AGENDA_URL/api/ingest` (default
 `http://localhost:4010`).
 
 ## After running
@@ -193,8 +191,7 @@ Read the output (a JSON task with its `id` and `due_at`), THEN reply — do not
 confirm before the command actually ran. Tell the user what was saved: "Saved for
 <day> <time>, services <…>, tags <…>."
 
-When you mention a task in the reply, write it as a markdown link —
-`[title](<AGENDA_UI_URL>/task/<id>)` — which opens the agenda with that task's
-drawer already open. `$AGENDA_UI_URL` is the web app (default
-`http://localhost:4011`), not `$AGENDA_URL`, which is the API.
+Mention a task in the reply as `[title](<AGENDA_UI_URL>/task/<id>)`: it opens the
+agenda on that task. `$AGENDA_UI_URL` is the web app (default `http://localhost:4011`),
+not the API.
 `add-task.sh` prints the link on stderr right after the create.
