@@ -3,8 +3,8 @@ name: note-progress
 description: |
   Append ONE timeline note (what happened) to a task in the connected agent-agenda,
   the same turn a milestone happens: a decision made, a blocker hit or cleared, a PR
-  opened or merged, an issue closed, a step done, a deploy. Forward plan: set-next-
-  steps. New task: add-to-agenda.
+  opened or merged, an issue closed, a step done, a deploy. Forward plan:
+  set-next-steps. New task: add-to-agenda.
 ---
 
 # note-progress — append one timeline note

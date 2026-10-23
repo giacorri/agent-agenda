@@ -3,8 +3,8 @@ name: set-next-steps
 description: |
   Replace the next steps (the ordered forward plan) of a task in the connected
   agent-agenda when the plan changes: a step done, a new one, a new order. Full
-  replace: pass every step to keep. A step already done goes in a note (note-
-  progress); a message to send is never a step (handoff-recap).
+  replace: pass every step to keep. A step already done goes in a note
+  (note-progress); a message to send is never a step (handoff-recap).
 ---
 
 # set-next-steps — rewrite the forward plan
