@@ -162,6 +162,26 @@ the marketplace in `/plugin`. To hack on the skills, add the marketplace from a 
 clone instead (`claude plugin marketplace add ./agent-agenda`): the plugin then loads in
 place and every edit applies at the next session or `/reload-plugins`.
 
+#### Focus pane in cmux (opt-in)
+
+If you run Claude Code inside [cmux](https://cmux.com), the plugin can keep the task the
+agent is working on in view: a narrow browser pane in the same workspace showing
+`/focus/<id>`, a read-only, phone-width page with the title, requester, due date, the
+notes as a journal that scrolls as they land, and the first next step pinned at the
+bottom. When that step leaves the plan it is struck through and slides away, the next
+one takes its place, and a finished task shows its closing message.
+
+The pane opens (or follows along) whenever the agent reads or writes a task with the
+helper scripts. It is off by default and costs nothing outside cmux; turn it on with:
+
+```jsonc
+// ~/.claude/settings.json
+{ "env": { "AGENDA_CMUX_FOCUS": "1" } }
+```
+
+`AGENDA_CMUX_FOCUS_WIDTH` sets the pane width in points (default `400`). Close the pane
+and it stays closed until the agent moves on to another task. Needs `jq`.
+
 Other agents can read [`AGENTS.md`](AGENTS.md) and call the scripts or the API directly.
 
 ## Development

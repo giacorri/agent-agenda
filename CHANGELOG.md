@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Focus view:** `/focus/<id>`, a read-only, phone-width page for one task: notes as a
+  live journal, the first next step pinned at the bottom and struck off when done.
+- **cmux focus pane (opt-in):** with `AGENDA_CMUX_FOCUS=1`, a plugin hook opens the focus
+  view in a narrow cmux browser pane next to the agent and follows the task it works on.
+
 ## [0.2.0] - 2026-10-26
 
 ### Added

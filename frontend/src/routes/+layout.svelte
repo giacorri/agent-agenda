@@ -32,6 +32,8 @@
   // back-link header, so drop the top nav there to give that header room to breathe.
   const DETAIL_PREFIXES = ['/requester/', '/tag/', '/service/', '/status/'];
   const isDetail = $derived(DETAIL_PREFIXES.some((p) => page.url.pathname.startsWith(p)));
+  // The focus view lives in a narrow side pane: no app chrome at all.
+  const isFocus = $derived(page.url.pathname.startsWith('/focus/'));
 
   // Back to the drawer without linking anything (banner button or Esc).
   function cancelPick() {
@@ -57,6 +59,9 @@
      would otherwise see the just-reopened task and close it again) skips it. -->
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape' && $linkPick) { e.preventDefault(); cancelPick(); } }} />
 
+{#if isFocus}
+  {@render children()}
+{:else}
 <div class="app">
   <Sidebar />
   <main>
@@ -102,6 +107,7 @@
     </div>
   {/if}
 </div>
+{/if}
 
 <style>
   .app { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }

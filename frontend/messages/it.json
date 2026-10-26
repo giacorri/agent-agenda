@@ -337,5 +337,10 @@
   "gantt_tip_completed": "Completato",
   "gantt_nothing": "Niente in programma. Qui compaiono i task con una scadenza.",
   "gantt_tip_status": "Stato",
-  "tl_task_header": "Task"
+  "tl_task_header": "Task",
+  "focus_next": "Prossimo passo",
+  "focus_more": "+{n} dopo questo",
+  "focus_finished": "Tutti i passi fatti",
+  "focus_self": "di mia iniziativa",
+  "focus_open_agenda": "Apri nell'agenda"
 }

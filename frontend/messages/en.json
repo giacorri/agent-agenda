@@ -337,5 +337,10 @@
   "gantt_tip_completed": "Completed",
   "gantt_nothing": "Nothing scheduled. Tasks with a due date show up here.",
   "gantt_tip_status": "Status",
-  "tl_task_header": "Tasks"
+  "tl_task_header": "Tasks",
+  "focus_next": "Next step",
+  "focus_more": "+{n} more after this",
+  "focus_finished": "All steps done",
+  "focus_self": "self-assigned",
+  "focus_open_agenda": "Open in the agenda"
 }
