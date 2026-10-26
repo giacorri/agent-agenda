@@ -44,7 +44,7 @@ task (earliest due date wins).
 - **Actions only — not states.** A step is something to do next, not a status. Keep
   OUT of the steps: things you are waiting on, open decisions, deferred/parked ideas,
   and bare lists of issue numbers. An open decision or a blocker belongs in a note
-  (`note-progress`) with a headline that flags it; a parked idea is a note too. The
+  (`note-progress`) that says so in one sentence; a parked idea is a note too. The
   steps column must stay a clean, doable plan — not a mixed drawer.
 - **No date, no story**: steps look forward. The "how it went" goes in notes.
 - **A message to someone is never a step.** A step like "tell <person> that X, and
