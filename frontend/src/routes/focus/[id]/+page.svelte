@@ -24,6 +24,9 @@
   let next = $state<string | null>(null);
   let striking = $state(false);
   let journal = $state<HTMLElement | null>(null);
+  let summaryOpen = $state(false);
+  let summaryEl = $state<HTMLElement | null>(null);
+  let clamped = $state(false);
 
   const id = $derived(page.params.id ?? '');
   const repo = $derived(task ? taskRepo(task, $config) : null);
@@ -71,7 +74,11 @@
     return () => { off(); clearInterval(poll); };
   });
 
-  $effect(() => { if (id) { task = null; next = null; load(); } });
+  $effect(() => { if (id) { task = null; next = null; summaryOpen = false; load(); } });
+  $effect(() => {
+    task?.summary;
+    if (summaryEl && !summaryOpen) clamped = summaryEl.scrollHeight > summaryEl.clientHeight + 1;
+  });
 </script>
 
 <svelte:head><title>{task?.title ?? 'agenda'}</title></svelte:head>
@@ -102,17 +109,20 @@
         <div class="blocked"><Icon name="lock" size={12} />{m.td_blocked_by()}: {task.blocked_by.map((d) => d.title).join(', ')}</div>
       {/if}
       {#if task.summary}
-        <div class="summary md">{@html renderMarkdown(task.summary, repo, $config)}</div>
+        <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+        <div class="summary md" class:clamped class:open={summaryOpen} bind:this={summaryEl} onclick={(e) => { if (clamped && !(e.target as HTMLElement).closest('a')) summaryOpen = !summaryOpen; }}>{@html renderMarkdown(task.summary, repo, $config)}</div>
       {/if}
     </header>
 
     <ol class="journal" bind:this={journal}>
       {#each task.notes as n (n.id)}
-        {@const split = splitNote(n.body)}
+        <!-- A note that opens with a list item is one list, not headline + rest. -->
+        {@const split = /^\s*([-*+]|\d+\.)\s/.test(n.body) ? { headline: '', rest: n.body } : splitNote(n.body)}
         <li in:fly={{ y: 16, duration: 400 }}>
           <span class="dot"><Icon name="check" size={10} /></span>
           <div class="body">
-            <div class="md">{@html renderMarkdown(split.headline || split.rest, repo, $config)}</div>
+            {#if split.headline}<div class="md head">{@html renderMarkdown(split.headline, repo, $config)}</div>{/if}
+            <div class="md">{@html renderMarkdown(split.rest, repo, $config)}</div>
             <time>{relativeTime(n.created_at)}</time>
           </div>
         </li>
@@ -145,6 +155,16 @@
     display: flex; flex-direction: column; height: 100vh; max-width: 480px; margin: 0 auto;
     padding: 14px 14px 12px; gap: 12px; font-size: 14px;
   }
+  .md { overflow-wrap: anywhere; }
+  .md :global(> :first-child) { margin-top: 0; }
+  .md :global(> :last-child) { margin-bottom: 0; }
+  .md :global(p) { margin: 4px 0; }
+  .md :global(ul), .md :global(ol) { margin: 4px 0; padding-left: 18px; }
+  .md :global(code) { background: var(--bg-glass-hover); padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+  .md :global(pre) { background: var(--bg-glass-hover); padding: 6px 8px; border-radius: 4px; overflow-x: auto; margin: 4px 0; }
+  .md :global(pre code) { background: transparent; padding: 0; }
+  .md :global(a) { color: var(--link); }
+  .md :global(a:hover) { color: var(--link-hover); }
   .empty { color: var(--text-muted); text-align: center; margin: auto 0; }
   header { display: flex; flex-direction: column; gap: 8px; }
   .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
@@ -156,7 +176,12 @@
   .open:hover { color: var(--text-primary); }
   h1 { font-size: 19px; line-height: 1.25; font-weight: 650; }
   .who { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 13px; }
-  .summary { color: var(--text-secondary); font-size: 13px; max-height: 7.5em; overflow-y: auto; }
+  /* Clamped with a fade so a cut description reads as cut; click toggles it open. */
+  .summary {
+    color: var(--text-secondary); font-size: 13px; max-height: 6em; overflow: hidden;
+  }
+  .summary.clamped { cursor: pointer; mask-image: linear-gradient(to bottom, #000 60%, transparent); }
+  .summary.open { max-height: 40vh; overflow-y: auto; mask-image: none; }
 
   .journal {
     flex: 1; min-height: 0; overflow-y: auto; list-style: none; display: flex; flex-direction: column;
@@ -171,6 +196,7 @@
   }
   .body { min-width: 0; }
   .body .md { color: var(--text-secondary); font-size: 13px; overflow-wrap: anywhere; }
+  .body .md.head { color: var(--text-primary); font-weight: 600; }
   .journal li:last-child .body .md { color: var(--text-primary); }
   time { font-size: 11px; color: var(--text-muted); }
 
