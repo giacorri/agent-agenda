@@ -9,11 +9,12 @@
   import { api } from '$lib/api';
   import { onWs } from '$lib/ws';
   import { renderMarkdown, splitNote } from '$lib/markdown';
-  import { config, personFor, taskRepo } from '$lib/stores/config';
-  import { relativeTime, hasDue, isPastDue } from '$lib/time';
-  import { fmtDueNum, statusLabel } from '$lib/format';
+  import { config, personFor, clientFor, taskRepo } from '$lib/stores/config';
+  import { hasDue, isPastDue } from '$lib/time';
+  import { fmtDueNum, fmtDayNum, statusLabel } from '$lib/format';
   import * as m from '$lib/paraglide/messages';
   import PersonAvatar from '$lib/components/PersonAvatar.svelte';
+  import ClientLogo from '$lib/components/ClientLogo.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import StatusIcon from '$lib/components/StatusIcon.svelte';
   import type { TaskWithNotes } from '$lib/types';
@@ -29,6 +30,7 @@
   const id = $derived(page.params.id ?? '');
   const repo = $derived(task ? taskRepo(task, $config) : null);
   const who = $derived(task?.requester ? personFor(task.requester, $config) : undefined);
+  const client = $derived(task?.client ? clientFor(task.client, $config) : undefined);
   const finished = $derived(task?.status === 'done');
 
   async function load() {
@@ -84,19 +86,22 @@
     <p class="empty">{m.td_loading()}</p>
   {:else}
     <header>
+      <h1>{task.title}</h1>
       <div class="meta">
         <span class="status s-{task.status}"><StatusIcon status={task.status} size={12} />{statusLabel(task.status)}</span>
         {#if hasDue(task)}
           <span class="due" class:over={!finished && isPastDue(task.due_at)}><Icon name="clock" size={12} />{fmtDueNum(task.due_at)}</span>
         {/if}
-        <a class="open" href="/task/{task.id}" target="_blank" title={m.focus_open_agenda()} aria-label={m.focus_open_agenda()}><Icon name="link" size={13} /></a>
-      </div>
-      <h1>{task.title}</h1>
-      <div class="who">
+        <!-- Faces only; the name slides out on hover or focus to save width. -->
         {#if task.requester}
-          <PersonAvatar photo={who?.photo} size={20} alt={who?.label ?? task.requester} />{who?.label ?? task.requester}
-        {:else}
-          <Icon name="user" size={14} />{m.focus_self()}
+          <span class="chip" tabindex="0" role="note" aria-label={who?.label ?? task.requester}>
+            <PersonAvatar photo={who?.photo} size={18} alt={who?.label ?? task.requester} /><span class="name">{who?.label ?? task.requester}</span>
+          </span>
+        {/if}
+        {#if task.client}
+          <span class="chip" tabindex="0" role="note" aria-label={client?.label ?? task.client}>
+            <ClientLogo logo={client?.logo} size={18} alt={client?.label ?? task.client} /><span class="name">{client?.label ?? task.client}</span>
+          </span>
         {/if}
       </div>
       {#if task.blocked_by?.length}
@@ -112,11 +117,13 @@
         <!-- A note that opens with a list item is one list, not headline + rest. -->
         {@const split = /^\s*([-*+]|\d+\.)\s/.test(n.body) ? { headline: '', rest: n.body } : splitNote(n.body)}
         <li in:fly={{ y: 16, duration: 400 }}>
-          <span class="dot"><Icon name="check" size={10} /></span>
+          <div class="mark">
+            <span class="dot"><Icon name="check" size={10} /></span>
+            <time datetime={n.created_at}>{fmtDayNum(n.created_at)}</time>
+          </div>
           <div class="body">
             {#if split.headline}<div class="md head">{@html renderMarkdown(split.headline, repo, $config)}</div>{/if}
             <div class="md">{@html renderMarkdown(split.rest, repo, $config)}</div>
-            <time>{relativeTime(n.created_at)}</time>
           </div>
         </li>
       {/each}
@@ -160,7 +167,7 @@
   .md :global(a:hover) { color: var(--link-hover); }
   .empty { color: var(--text-muted); text-align: center; margin: auto 0; }
   header { display: flex; flex-direction: column; gap: 8px; }
-  .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12px; color: var(--text-muted); }
   /* Same status palette as the agenda drawer. */
   .status { --st: var(--link); display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px;
     color: var(--st); background: color-mix(in srgb, var(--st) 14%, transparent); border: 1px solid color-mix(in srgb, var(--st) 40%, transparent); }
@@ -170,10 +177,16 @@
   .status.s-shelved { --st: var(--red); }
   .due { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
   .due.over { color: var(--red); }
-  .open { margin-left: auto; color: var(--text-muted); display: inline-flex; }
-  .open:hover { color: var(--text-primary); }
+  .chip {
+    display: inline-flex; align-items: center; padding: 2px; border-radius: 999px; outline: none;
+    background: var(--bg-glass); border: 1px solid var(--border-glass); color: var(--text-secondary);
+  }
+  .chip .name {
+    max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0;
+    transition: max-width 0.25s ease, opacity 0.2s, margin 0.25s;
+  }
+  .chip:hover .name, .chip:focus-visible .name { max-width: 180px; opacity: 1; margin: 0 6px 0 5px; }
   h1 { font-size: 19px; line-height: 1.25; font-weight: 650; }
-  .who { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 13px; }
   .summary { color: var(--text-secondary); font-size: 13px; max-height: 35vh; overflow-y: auto; }
 
   .journal {
@@ -181,17 +194,18 @@
     gap: 10px; padding: 4px 2px; border-top: 1px solid var(--border-glass);
     mask-image: linear-gradient(to bottom, transparent, #000 24px);
   }
-  .journal li { display: flex; gap: 10px; }
+  .journal li { display: flex; gap: 6px; }
   .journal li:first-child { margin-top: auto; padding-top: 18px; }
   .dot {
-    flex: 0 0 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    flex: none; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
     background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); margin-top: 1px;
   }
   .body { min-width: 0; }
   .body .md { color: var(--text-secondary); font-size: 13px; overflow-wrap: anywhere; }
   .body .md.head { color: var(--text-primary); font-weight: 600; }
   .journal li:last-child .body .md { color: var(--text-primary); }
-  time { font-size: 11px; color: var(--text-muted); }
+  .mark { flex: 0 0 34px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  time { font-size: 10px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
   footer { display: grid; }
   footer > * { grid-area: 1 / 1; }

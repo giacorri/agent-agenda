@@ -340,7 +340,5 @@
   "tl_task_header": "Tasks",
   "focus_next": "Next step",
   "focus_more": "+{n} more after this",
-  "focus_finished": "All steps done",
-  "focus_self": "self-assigned",
-  "focus_open_agenda": "Open in the agenda"
+  "focus_finished": "All steps done"
 }

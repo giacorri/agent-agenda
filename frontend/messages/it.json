@@ -340,7 +340,5 @@
   "tl_task_header": "Task",
   "focus_next": "Prossimo passo",
   "focus_more": "+{n} dopo questo",
-  "focus_finished": "Tutti i passi fatti",
-  "focus_self": "di mia iniziativa",
-  "focus_open_agenda": "Apri nell'agenda"
+  "focus_finished": "Tutti i passi fatti"
 }
