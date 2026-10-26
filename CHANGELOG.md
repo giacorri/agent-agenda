@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Agenda reminder (cmux focus pane):** a Stop hook asks the agent, once per turn, to log
+  the step and update the plan when it worked on the followed task without writing back.
+- **Status icons** across the task drawer and the focus view, with a spinner for
+  in-progress tasks.
+
+### Changed
+
+- **Note style:** `note-progress` and `tidy-agenda` now keep one note per fact; no more
+  bulleted notes that collect several steps.
+
 ## [0.3.0] - 2026-10-26
 
 ### Added

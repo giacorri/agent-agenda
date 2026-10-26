@@ -28,9 +28,14 @@ url="${AGENDA_UI_URL:-http://localhost:4011}/focus/$id"
 state="${TMPDIR:-/tmp}/agent-agenda-focus/$CMUX_WORKSPACE_ID"
 mkdir -p "${state%/*}"
 
-surface="" shown=""
-[[ -f "$state" ]] && read -r surface shown <"$state"
-[[ "$shown" == "$id" ]] && exit 0
+session=$(jq -r '.session_id // empty' <<<"$input")
+surface="" shown="" owner=""
+[[ -f "$state" ]] && read -r surface shown owner <"$state"
+if [[ "$shown" == "$id" ]]; then
+  # Same task: only hand ownership to this session (agenda-reminder.sh reads it).
+  [[ "$owner" != "$session" ]] && echo "$surface $id $session" >"$state"
+  exit 0
+fi
 
 if [[ -n "$surface" ]] && cmux browser --surface "$surface" get-url >/dev/null 2>&1; then
   cmux browser --surface "$surface" navigate "$url" >/dev/null 2>&1
@@ -48,5 +53,5 @@ else
     cmux resize-pane --pane "$caller" -R --amount "$extra" >/dev/null 2>&1
   fi
 fi
-echo "$surface $id" >"$state"
+echo "$surface $id $session" >"$state"
 exit 0

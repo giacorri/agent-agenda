@@ -182,6 +182,10 @@ helper scripts. It is off by default and costs nothing outside cmux; turn it on 
 `AGENDA_CMUX_FOCUS_WIDTH` sets the pane width in points (default `400`). Close the pane
 and it stays closed until the agent moves on to another task. Needs `jq`.
 
+The pane is only as current as what the agent writes, so the same switch adds a
+reminder: when a turn does work while the pane follows a task but writes nothing back,
+the agent is asked once to log the step and update the plan before it stops.
+
 Other agents can read [`AGENTS.md`](AGENTS.md) and call the scripts or the API directly.
 
 ## Development
