@@ -100,9 +100,6 @@ If there is no tracked task and the user wants a future action/reminder, use
 - Use `delegate-prompt` to create a copy-paste prompt from an agenda task.
 - Use `tidy-agenda` to clean up: verify what is done, close it, condense notes, merge duplicates.
 
-Use the companion skill names explicitly in agenda notes when the local convention
-asks for a `[skill: ...]` suffix.
-
 **Note kinds `file`/`link`**: the body must be ONLY the path or URL — the UI wraps
 the whole body in a single `<a href="file://…">` / `<a href>`. Prose in a `file`/`link`
 note becomes one broken link. Put descriptions in a separate `text` note (those render

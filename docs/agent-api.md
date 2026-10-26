@@ -416,11 +416,11 @@ show-task.sh <id>                                 # notes = past, steps = future
 
 # 3. Start: mark it in progress, note that you picked it up, post the plan.
 set-status.sh <id> in_progress
-add-note.sh <id> --body "Started: triage the import. [skill: add-to-agenda]"
+add-note.sh <id> --body "Started: triage the import."
 set-steps.sh <id> --step "Reproduce" --step "Fix" --step "Reply"
 
 # 4. Progress: one note per milestone; keep steps current.
-add-note.sh <id> --body "Reproduced locally. Cause: file encoding. [skill: note-progress]"
+add-note.sh <id> --body "Reproduced locally. Cause: file encoding."
 set-steps.sh <id> --step "Fix" --step "Reply"
 
 # 5. Conclude: closing handoff, then mark done.

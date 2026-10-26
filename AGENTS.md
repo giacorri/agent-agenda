@@ -178,13 +178,12 @@ to the matching endpoint — automatically, in the same turn the event happens:
 | **Conclude** — the topic is closed, or de-facto closed | The closing handoff; mark the task done once it is actually over | closing + `done-task.sh` |
 
 **Note shape.** One line, lead with a verb: `<verb> <what>`. Optionally a short *why*,
-and a *ref* (a configured shorthand like `web#123`, or a URL). Cite the skill that
-produced the action as a `[skill: <name>]` suffix. Examples:
+and a *ref* (a configured shorthand like `web#123`, or a URL). Examples:
 
 ```
-Opened the PR for the cache fix. web#412 [skill: note-progress]
-Blocked: need the staging deploy token to continue. [skill: note-progress]
-Started: triage the failing import. Plan posted as steps. [skill: add-to-agenda]
+Opened the PR for the cache fix. web#412
+Blocked: need the staging deploy token to continue.
+Started: triage the failing import. Plan posted as steps.
 ```
 
 ## The human↔agent memory loop
