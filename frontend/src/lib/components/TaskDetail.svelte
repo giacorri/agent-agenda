@@ -15,6 +15,7 @@
   import { fmtFull, fmtDueFull, fmtDueNum, fmtDateTime, statusLabel } from '$lib/format';
   import * as m from '$lib/paraglide/messages';
   import Icon from './Icon.svelte';
+  import StatusIcon from './StatusIcon.svelte';
   import ScopeIcon from './ScopeIcon.svelte';
   import PersonAvatar from './PersonAvatar.svelte';
   import ClientLogo from './ClientLogo.svelte';
@@ -110,9 +111,6 @@
   // Custom status picker (button + popover) replacing the bare <select>.
   let statusMenu = $state(false);
   const STATUSES = ['pending', 'in_progress', 'snoozed', 'done', 'shelved'] as const;
-  const STATUS_ICON: Record<string, string> = {
-    pending: 'dot', in_progress: 'play', snoozed: 'clock', done: 'check', shelved: 'package',
-  };
   // Suggestions for the services field come from the configured categories.
   const knownServices = $derived($categories.map((c) => c.key));
 
@@ -512,7 +510,7 @@
               <div class="status-wrap">
                 <button type="button" class="status-btn st-{task.status}" onclick={() => statusMenu = !statusMenu}
                   aria-haspopup="menu" aria-expanded={statusMenu}>
-                  <span class="st-ico"><Icon name={STATUS_ICON[task.status] ?? 'dot'} size={14} /></span>
+                  <span class="st-ico"><StatusIcon status={task.status} /></span>
                   <span>{statusLabel(task.status)}</span>
                   <Icon name="chevron" size={13} />
                 </button>
@@ -523,7 +521,7 @@
                       <button type="button" role="menuitemradio" aria-checked={task.status === val}
                         class="status-opt" class:sel={task.status === val}
                         onclick={() => { saveStatus(val); statusMenu = false; }}>
-                        <span class="st-ico st-{val}"><Icon name={STATUS_ICON[val]} size={14} /></span>
+                        <span class="st-ico st-{val}"><StatusIcon status={val} /></span>
                         {statusLabel(val)}
                       </button>
                     {/each}
@@ -710,7 +708,7 @@
                   <li>
                     <button type="button" role="option" aria-selected={i === depCursor} class:cur={i === depCursor}
                       onmouseenter={() => depCursor = i} onclick={() => addDep(c.id)}>
-                      <span class="st-ico st-{c.status}"><Icon name={STATUS_ICON[c.status] ?? 'dot'} size={12} /></span>
+                      <span class="st-ico st-{c.status}"><StatusIcon status={c.status} size={12} /></span>
                       <span class="dep-title">{c.title}</span>
                       {#if hasDue(c)}<span class="dep-due">{fmtDueNum(c.due_at)}</span>{/if}
                     </button>

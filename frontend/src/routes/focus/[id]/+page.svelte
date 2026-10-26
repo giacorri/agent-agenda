@@ -15,6 +15,7 @@
   import * as m from '$lib/paraglide/messages';
   import PersonAvatar from '$lib/components/PersonAvatar.svelte';
   import Icon from '$lib/components/Icon.svelte';
+  import StatusIcon from '$lib/components/StatusIcon.svelte';
   import type { TaskWithNotes } from '$lib/types';
 
   const STRIKE_MS = 700;
@@ -84,7 +85,7 @@
   {:else}
     <header>
       <div class="meta">
-        <span class="status s-{task.status}">{statusLabel(task.status)}</span>
+        <span class="status s-{task.status}"><StatusIcon status={task.status} size={12} />{statusLabel(task.status)}</span>
         {#if hasDue(task)}
           <span class="due" class:over={!finished && isPastDue(task.due_at)}><Icon name="clock" size={12} />{fmtDueNum(task.due_at)}</span>
         {/if}
@@ -160,8 +161,13 @@
   .empty { color: var(--text-muted); text-align: center; margin: auto 0; }
   header { display: flex; flex-direction: column; gap: 8px; }
   .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
-  .status { padding: 2px 8px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
-  .status.s-done { background: var(--green-dim); color: var(--green); border-color: var(--green-border); }
+  /* Same status palette as the agenda drawer. */
+  .status { --st: var(--link); display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px;
+    color: var(--st); background: color-mix(in srgb, var(--st) 14%, transparent); border: 1px solid color-mix(in srgb, var(--st) 40%, transparent); }
+  .status.s-in_progress { --st: var(--accent); }
+  .status.s-snoozed { --st: var(--amber); }
+  .status.s-done { --st: var(--green); }
+  .status.s-shelved { --st: var(--red); }
   .due { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
   .due.over { color: var(--red); }
   .open { margin-left: auto; color: var(--text-muted); display: inline-flex; }
