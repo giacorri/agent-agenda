@@ -89,6 +89,16 @@ docker compose up -d --build
 Open <http://localhost:4011>. The API listens on <http://localhost:4010> and the
 database is stored in `./data/tasks.db`. Both ports are bound to `127.0.0.1` only.
 
+To update an existing install, pull and rebuild; the database in `./data` is kept:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Release notes are in [CHANGELOG.md](CHANGELOG.md). To stay on a release instead of
+`main`, check out its tag (`git checkout v0.2.0`) before rebuilding.
+
 To look around with demo data instead of an empty agenda, see
 [Development](#development).
 

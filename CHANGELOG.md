@@ -7,12 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-26
+
+### Added
+
+- **People on a task:** tag people besides the requester; a person's page lists the
+  tasks they asked for or are tagged on.
+- **Gantt timeline:** a second timeline mode that plots open work on a time axis
+  around due days, with zoom, closed tasks on demand and a resizable task column.
+- **Updating:** README and self-hosting guide explain how to update an existing install.
+
 ### Changed
 
+- **Timeline:** redesigned as a day-by-day list of open work.
+- **Sidebar:** the requesters heading is now "People".
 - **Claude Code plugin:** the skills and helper scripts ship as the `agent-agenda`
   plugin from this repository's marketplace (`claude plugin marketplace add` +
   `claude plugin install`). Skills moved from `.claude/skills/` to `skills/`, with
   shorter descriptions. `scripts/install-claude-skills.sh` is removed.
+
+### Fixed
+
+- **Filtered pages:** the person, client, service and tag pages no longer crash on
+  tasks with a due date, which left the previous page's cards on screen.
+- **Date-only due dates** are read as a local calendar day everywhere.
+- **In-progress status** is tracked, and cards without notes show their description.
+- **Gantt hover card** renders markdown in the summary.
+- **Skill descriptions** keep hyphenated skill names whole.
 
 ## [0.1.0] - 2026-09-29
 
@@ -55,4 +76,6 @@ Initial public release.
 - **Project:** demo seed data, CI (backend tests, frontend build, Docker build),
   issue and pull request templates, security policy.
 
+[Unreleased]: https://github.com/giacorri/agent-agenda/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/giacorri/agent-agenda/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/giacorri/agent-agenda/releases/tag/v0.1.0

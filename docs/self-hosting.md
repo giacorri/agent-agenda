@@ -33,6 +33,18 @@ To stop:
 docker compose down
 ```
 
+## Updating
+
+To update an existing install, pull and rebuild; the database in `./data` is kept:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Release notes are in [CHANGELOG.md](CHANGELOG.md). To stay on a release instead of
+`main`, check out its tag (`git checkout v0.2.0`) before rebuilding.
+
 ## Ports
 
 Both services publish only on the loopback interface (`127.0.0.1`), so they are not

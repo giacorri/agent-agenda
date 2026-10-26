@@ -1,6 +1,6 @@
 {
   "name": "agent-agenda-backend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Backend for agent-agenda: a self-hosted agenda your coding agent writes to and you review (Bun + bun:sqlite, HTTP + WebSocket).",
   "license": "MIT",
