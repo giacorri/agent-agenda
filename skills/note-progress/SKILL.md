@@ -69,7 +69,7 @@ notes, one `add-note.sh` call each. Never a list, never a paragraph.
 
 Keep the name of the thing itself (`acme-pull`): it is what the reader will search
 for. Everything around it — where the password went, paths, ports, scopes, why the
-CLI behaved as it did — is detail. It belongs in the task description,
+CLI behaved as it did, side remarks like "no issue needed" — is detail. It belongs in the task description,
 the repo docs or the vault item, not in the timeline. Leave it out.
 
 Only a decision or a blocker may take a second line, for the *why* in a few words:
@@ -83,6 +83,9 @@ task (earliest due date wins). If nothing matches, the command exits non-zero �
 create a task with `add-to-agenda`.
 
 ## Text rules (few, not optional)
+
+- **Only what is really useful.** For every piece, ask: would whoever picks the task
+  up tomorrow miss it if it were gone? If not, cut it.
 
 - **Outcome, not process.** "The importer now accepts semicolon CSV files", not which
   commands ran, which gate passed or which agent did it.
