@@ -185,6 +185,7 @@ and it stays closed until the agent moves on to another task. Needs `jq`.
 The pane is only as current as what the agent writes, so the same switch adds a
 reminder: when a turn does work while the pane follows a task but writes nothing back,
 the agent is asked once to log the step and update the plan before it stops.
+`AGENDA_LANG=it` writes that reminder in Italian.
 
 Other agents can read [`AGENTS.md`](AGENTS.md) and call the scripts or the API directly.
 
