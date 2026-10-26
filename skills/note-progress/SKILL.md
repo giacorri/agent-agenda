@@ -9,22 +9,14 @@ description: |
 
 # note-progress — append one timeline note
 
-**Register — managerial, not a log.** Write each note like a manager glancing at a
-board, not an engineer keeping a record: concise by default, longer only when the
-topic is genuinely delicate. Name the thing once — don't explain it in full.
+**A note is one short sentence saying what got done.** Like a line in a diary
+someone skims in five seconds: the outcome, in plain words, in the user's language.
+Aim for **at most ~20 words**. If you need more, you are either writing several facts
+(→ several notes) or explaining details that belong somewhere else.
 
-**Short, plain words, in the user's language, one idea per line.** No jargon unless it is the name of the
-thing. **Short sentences, straight to the point.** Each fact is one short past-tense sentence
-that stands on its own — "Fixed the double import with a check on existing codes",
-"Made the importer accept semicolon-separated CSV files". The issue/PR link sits at the end as an
-extra for whoever wants the detail, never as the substance. No run ids, digests,
-changeset names, log lines or chains of clauses: if the reader needs the link to
-understand the sentence, rewrite the sentence.
-
-A task's notes are its timeline: read in order, they reconstruct the whole story
+A task's notes are its timeline: read in order, they tell the story of the task
 without opening any PR, issue or chat. The card shows the **last note** as the
-current state at a glance — so each note must be self-contained and the sequence
-must form a complete timeline.
+current state at a glance.
 
 This skill appends one note via `add-note.sh`, which posts to `POST /api/ingest/note`.
 
@@ -61,24 +53,28 @@ note must NAME the thing, not point at it:
 The first time a PR/issue/file appears, say what it is (half a line). Later notes
 can refer to it by number.
 
-## Note shape: keep it scannable
+## Note shape: one line
 
-**One note = one thing done.** The default is a single plain line — e.g. "Runner
-cleanup fix ready to merge — `web#448`". Several things happened? Write **several
-notes**, one `add-note.sh` call each: the timeline is the history, and every entry
-gets its own timestamp. Never a bulleted note that packs several facts together.
+**One note = one thing done = one sentence.** Several things happened → several
+notes, one `add-note.sh` call each. Never a list, never a paragraph.
 
-Only when the one fact needs context (a decision and its why, a delicate blocker) add
-a **headline** (first line, rendered bold, carries the OUTCOME, not the topic) and,
-after a blank line, a **story** of 1-2 lines.
+- Bad: "Registry token `acme-pull` created (scope map `acme-read`, read-only on the 15
+  installer images). Password in the vault. The CLI printed it in a warning in the
+  terminal: stays local, no issue."
+- Good: "Created the registry token for the customer install; password in the vault."
+
+- Bad: "Re-checked the machine: database reachable (port 1436), internal DNS ok,
+  certificate `site.pfx` in `/home/svc/certs` (local user's home), Docker empty."
+- Good: "Checked the machine: database, DNS and certificate are ready."
+
+What the second half of each bad note carries — paths, ports, account and vault
+names, why the CLI behaved as it did — is detail. It belongs in the task description,
+the repo docs or the vault item, not in the timeline. Leave it out.
+
+Only a decision or a blocker may take a second line, for the *why* in a few words:
 
 ```bash
-add-note.sh "<match>" --body "$(cat <<'EOF'
-<Headline: 3-8 words, carries the outcome/lesson of the step>
-
-<Story: what changed, plus the one open point if any. 1-2 lines.>
-EOF
-)"
+add-note.sh "<match>" --body "Chose the nightly export over the live sync: the API has no paging."
 ```
 
 `<match>` is a task id, or a substring of the title / tag / service of a pending
@@ -87,46 +83,17 @@ create a task with `add-to-agenda`.
 
 ## Text rules (few, not optional)
 
-- **One PR / feature = one note.** Never cram several PRs into one note; the
-  timeline wants them separate, each with its own timestamp. Do not put the forward
-  plan here — that lives in the steps field (`set-next-steps`).
-- **Substance, not codes.** Say what actually changed for the app / the user, in
-  plain words — not just the number plus a technical or process label. `repo#98
-  merged, 54 files` says nothing; "Track analysis got faster — X is precomputed now"
-  is the substance. Drop internal process jargon (build-gate names, agent/pipeline
-  labels): the reader cares what the app does now, not how you got there.
-- **No emoji, ever.** The step's category (done · blocked/waiting · open decision ·
-  new fact that changes the plan) comes from the words of the headline, not an icon.
-- **No lists inside a note.** Three points are three notes. A note that needs bullets
-  is several notes stuck together: split it.
-- **Few refs in the text — one link at the end, at most.** Tell the story in plain
-  words; park the reference (`repo#PR98`) at the tail, don't sprinkle numbers through
-  the sentence.
-- **Bold the key term.** Put the key term in **bold** (the outcome, the number that matters, the cause) so the eye lands on the
-  substance at a glance. Use `code` for every technical name: files, classes,
-  branches, CI checks, commands, columns, error strings.
-- **NO date in the text**: the frontend already shows the timestamp from
-  `created_at`; writing it makes it appear twice. No "today/yesterday".
-- **Refs unqualified when the repo is obvious.** In a task whose tag or scope names a
-  configured repo, write just `#413` (issue) / `PR#413` (pull) — they link to that
-  repo. Qualify (`other#413`) only to point at a *different* repo. Never in backticks
-  — only bare text auto-links; the `PR` marker routes to `/pull/`. A plain **repo
-  name** (e.g. `acme.web.app`, written bare) auto-links to the repo itself, no `#N`.
-- **Self-contained**: always name the thing (which PR/issue/file), never "the PR".
-
-## Example
-
-```bash
-add-note.sh "import" --body "$(cat <<'EOF'
-Streaming import landed — big files no longer run out of memory.
-
-Switched the Excel reader from loading the whole file at once to reading it row by row, so memory stays flat whatever the file size. Green on all checks. repo#PR406
-EOF
-)"
-```
-
-The headline carries the outcome in plain words (not "merged repo#406"), the story
-says what changed for the user, and the single ref sits at the end as a `PR` link.
+- **Outcome, not process.** "The importer now accepts semicolon CSV files", not which
+  commands ran, which gate passed or which agent did it.
+- **No dates in the text.** The timeline shows each note's time; "26/10 —" or
+  "today" duplicates it.
+- **No ids, paths, ports, hashes or log lines** unless the thing has no other name.
+- **At most one reference, at the end** (`repo#PR98`), as an extra for whoever wants
+  the detail. Refs are unqualified when the task's tag names the repo (`#413`,
+  `PR#413`), never in backticks: only bare text auto-links.
+- **Bold at most one key term**, and only when it helps the eye; no emoji.
+- **Self-contained:** name the thing ("the registry token"), never "it" or "the PR".
+- **Plan stays out:** what is left to do lives in the steps (`set-next-steps`).
 
 ## Citing the task in your reply
 
