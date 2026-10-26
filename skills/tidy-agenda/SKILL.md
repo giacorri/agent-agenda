@@ -53,8 +53,8 @@ Tell subagents the note style below verbatim — a paraphrase loses it.
 - **Merge only the same thread with the same requester.** A task that is merely
   *blocked* by another, but asked by someone else, stays separate (it is that
   person's card). Literal duplicates (same steps) always merge.
-- **Merge mechanics:** append the absorbed task's note to the container's single
-  note, move its still-open steps over (≤4 total), close the absorbed task with a
+- **Merge mechanics:** copy the absorbed task's notes to the container as separate
+  notes, move its still-open steps over (≤4 total), close the absorbed task with a
   one-line note linking the container.
 - **Review with the user one theme at a time**: short proposal (what closes, what
   merges and why in one line), then apply on "ok". Surface urgent findings
@@ -64,8 +64,11 @@ Tell subagents the note style below verbatim — a paraphrase loses it.
 
 ## 3. Note style (the whole point)
 
-ONE note per task, a bullet list. Each bullet = **one short past-tense sentence,
-straight to the point, understandable on its own**:
+The timeline is the history: **one note per fact**, never one note that collects them.
+Tidy it note by note — rewrite each note worth keeping as **one short past-tense
+sentence, straight to the point, understandable on its own** (`edit-note.sh`), delete
+the noise (`del-note.sh`), fold near-duplicates into one. Never collapse the timeline
+into a single bulleted note: it loses the order and the dates. A kept note reads like:
 
 - `Fixed the double import with a check on existing codes (web#123)`
 - `Made the importer accept semicolon-separated CSV files (api#126)`
@@ -73,10 +76,9 @@ straight to the point, understandable on its own**:
 - `Asked Jane for the corrected file`
 
 The issue/PR link goes **at the end, as an extra** for whoever wants detail — never
-the substance. Max ~6 bullets (group minor steps). No run ids, digests, changeset
-names, log lines, semicolon chains, or bullets that only make sense by opening the
-link. Dates only where they matter (a release, a deadline). Optional last line
-`Status: …` if it adds what the steps don't say. Write in short, plain words, in the user's language,
+the substance. Aim for ~6 notes per task (fold minor steps). No run ids, digests,
+changeset names, log lines, semicolon chains, or notes that only make sense by opening
+the link. No dates in the text: each note carries its own timestamp. Write in short, plain words, in the user's language,
 one idea per line, no jargon unless it is the name of the thing.
 
 Titles: short, `Area/Customer: topic` or the bare topic, ~5 words

@@ -63,15 +63,14 @@ can refer to it by number.
 
 ## Note shape: keep it scannable
 
-Usually two parts: a **headline** (first line, rendered bold) then, after a blank line,
-a short **story** (1-2 lines: what changed, plus the single open point if any). The
-headline carries the OUTCOME or lesson, not the topic.
+**One note = one thing done.** The default is a single plain line — e.g. "Runner
+cleanup fix ready to merge — `web#448`". Several things happened? Write **several
+notes**, one `add-note.sh` call each: the timeline is the history, and every entry
+gets its own timestamp. Never a bulleted note that packs several facts together.
 
-The headline is **optional**: a small, purely operative note reads better as one plain
-line, no bold title — e.g. "Runner cleanup fix ready to merge —
-`web#448`". And when a note makes **several distinct points, write them as bullets**,
-never a prose blob that hides them in a sentence. Concise but complete: bullets let you
-stay short and still keep the real finding — don't strip a note down until it says little.
+Only when the one fact needs context (a decision and its why, a delicate blocker) add
+a **headline** (first line, rendered bold, carries the OUTCOME, not the topic) and,
+after a blank line, a **story** of 1-2 lines.
 
 ```bash
 add-note.sh "<match>" --body "$(cat <<'EOF'
@@ -98,14 +97,12 @@ create a task with `add-to-agenda`.
   labels): the reader cares what the app does now, not how you got there.
 - **No emoji, ever.** The step's category (done · blocked/waiting · open decision ·
   new fact that changes the plan) comes from the words of the headline, not an icon.
-- **Bullets when you enumerate.** If the note makes 3+ distinct points, write them as a
-  bulleted list — never a prose blob that buries them in a sentence. One point → one
-  plain line is fine. Visual impact over prose walls.
+- **No lists inside a note.** Three points are three notes. A note that needs bullets
+  is several notes stuck together: split it.
 - **Few refs in the text — one link at the end, at most.** Tell the story in plain
   words; park the reference (`repo#PR98`) at the tail, don't sprinkle numbers through
   the sentence.
-- **Bold the key terms, generously.** Lead each bullet / point with its key term in
-  **bold** (the outcome, the number that matters, the cause) so the eye lands on the
+- **Bold the key term.** Put the key term in **bold** (the outcome, the number that matters, the cause) so the eye lands on the
   substance at a glance. Use `code` for every technical name: files, classes,
   branches, CI checks, commands, columns, error strings.
 - **NO date in the text**: the frontend already shows the timestamp from
