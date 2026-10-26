@@ -4,9 +4,10 @@
 # Usage:
 #   edit-note <task-id|match> --last        --body "new text..."
 #   edit-note <task-id|match> --note-id <ULID> --body "new text..."
+#   edit-note <task-id|match> --note-id <ULID> --at YYYY-MM-DD   # (re)date it, body optional
 #
 # <match> = ULID task id, or a substring/tag/service of a pending task title.
-# Same note style as add-note: headline + story, bold, `code`, no date. Replaces the body.
+# Same note style as add-note: one short sentence, no date in the text. Replaces the body.
 
 set -euo pipefail
 
@@ -16,13 +17,15 @@ match=""
 note_id=""
 last=0
 body=""
+at=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --note-id) note_id="$2"; shift 2 ;;
     --last)    last=1; shift ;;
     --body)    body="$2"; shift 2 ;;
-    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
+    --at)      at="$2"; shift 2 ;;
+    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
     *)
       if [[ -z "$match" ]]; then match="$1"; shift; else
         echo "unknown arg: $1" >&2; exit 2
@@ -30,8 +33,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$match" || -z "$body" || ( -z "$note_id" && "$last" -ne 1 ) ]]; then
-  echo "Required: <match>, --body \"...\", and (--last | --note-id <ULID>)." >&2
+if [[ -z "$match" || ( -z "$body" && -z "$at" ) || ( -z "$note_id" && "$last" -ne 1 ) ]]; then
+  echo "Required: <match>, --body \"...\" and/or --at YYYY-MM-DD, and (--last | --note-id <ULID>)." >&2
   exit 2
 fi
 
@@ -63,7 +66,7 @@ if [[ -z "${task_id:-}" ]]; then echo "no task matched \"$match\"" >&2; exit 1; 
 if [[ -z "${resolved_note:-}" ]]; then echo "no note to edit" >&2; exit 1; fi
 
 json_str() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]), end="")' "$1"; }
-payload=$(printf '{ "body": %s }' "$(json_str "$body")")
+payload=$(printf '{ "body": %s, "created_at": %s }' "$(json_str "$body")" "$(json_str "$at")")
 
 response=$(curl -sS -w "\n%{http_code}" -X PATCH "$AGENDA_URL/api/tasks/$task_id/notes/$resolved_note" \
   -H 'Content-Type: application/json' --data-binary "$payload")

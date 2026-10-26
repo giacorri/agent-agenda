@@ -395,7 +395,7 @@ type NoteRow = {
 export function listNotes(db: Database, taskId: string): Note[] {
   const rows = db.query(
     `SELECT id, task_id, body, kind, created_at, agent_session
-     FROM notes WHERE task_id = ? ORDER BY created_at ASC`
+     FROM notes WHERE task_id = ? ORDER BY created_at ASC, id ASC`
   ).all(taskId) as NoteRow[];
   return rows.map(r => ({ ...r }));
 }
@@ -407,8 +407,9 @@ export function getNote(db: Database, noteId: string): Note | null {
   return row ? { ...row } : null;
 }
 
-export function updateNote(db: Database, noteId: string, body: string): void {
-  db.run('UPDATE notes SET body = ? WHERE id = ?', [body, noteId]);
+export function updateNote(db: Database, noteId: string, f: { body?: string; created_at?: string }): void {
+  if (f.body !== undefined) db.run('UPDATE notes SET body = ? WHERE id = ?', [f.body, noteId]);
+  if (f.created_at !== undefined) db.run('UPDATE notes SET created_at = ? WHERE id = ?', [f.created_at, noteId]);
 }
 
 export function deleteNote(db: Database, noteId: string): void {

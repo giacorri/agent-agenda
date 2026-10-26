@@ -54,7 +54,7 @@ Tell subagents the note style below verbatim — a paraphrase loses it.
   *blocked* by another, but asked by someone else, stays separate (it is that
   person's card). Literal duplicates (same steps) always merge.
 - **Merge mechanics:** copy the absorbed task's notes to the container as separate
-  notes, move its still-open steps over (≤4 total), close the absorbed task with a
+  notes, each keeping its original date (`add-note.sh … --at <date>`), move its still-open steps over (≤4 total), close the absorbed task with a
   one-line note linking the container.
 - **Review with the user one theme at a time**: short proposal (what closes, what
   merges and why in one line), then apply on "ok". Surface urgent findings
@@ -68,7 +68,8 @@ The timeline is the history: **one note per fact**, never one note that collects
 Tidy it note by note — rewrite each note worth keeping as **one short past-tense
 sentence, straight to the point, understandable on its own** (`edit-note.sh`), delete
 the noise (`del-note.sh`), fold near-duplicates into one. Never collapse the timeline
-into a single bulleted note: it loses the order and the dates. A kept note reads like:
+into a single bulleted note: it loses the order and the dates. Editing a body keeps the
+note's date; if a note carries its date in the text, move it out with `--at`. A kept note reads like:
 
 - `Fixed the double import with a check on existing codes (web#123)`
 - `Made the importer accept semicolon-separated CSV files (api#126)`

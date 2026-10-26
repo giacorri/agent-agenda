@@ -78,7 +78,7 @@ Mental model: **notes = the past, steps = the future, closing = the handoff.**
 | Create a task | `add-task.sh` | `POST /api/ingest` |
 | Create a task blocked by / blocking another | `add-task.sh --blocked-by` / `--blocks` | `POST /api/ingest` |
 | Link two existing tasks | — | `POST /api/ingest/link` |
-| Add a timeline note (progress) | `add-note.sh` | `POST /api/ingest/note` |
+| Add a timeline note (progress; `--at` dates a past event) | `add-note.sh` | `POST /api/ingest/note` (`created_at` optional) |
 | Attach a local file as a note | `attach-file.sh` | `POST /api/ingest/note` |
 | Fix or remove a note | `edit-note.sh` / `del-note.sh` | `PATCH` / `DELETE /api/tasks/:id/notes/:noteId` |
 | Replace the forward plan (next steps) | `set-steps.sh` | `POST /api/ingest/steps` |

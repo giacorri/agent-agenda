@@ -2,10 +2,10 @@
 # add-note — append a note to an existing task in agent-agenda
 #
 # Usage:
-#   add-note <task-id|match> --body "text..."  [--kind text|file|link]
+#   add-note <task-id|match> --body "text..."  [--kind text|file|link] [--at YYYY-MM-DD]
 #
 # <match> can be a ULID id, or a substring/tag that matches an open task (pending/in_progress/snoozed)
-# (the earliest due date wins).
+# (the earliest due date wins). --at dates a note that happened earlier (default: now).
 
 set -euo pipefail
 
@@ -14,11 +14,13 @@ set -euo pipefail
 match=""
 body=""
 kind="text"
+at=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --body) body="$2"; shift 2 ;;
     --kind) kind="$2"; shift 2 ;;
+    --at)   at="$2"; shift 2 ;;
     -h|--help)
       sed -n '2,10p' "$0"; exit 0 ;;
     *)
@@ -40,7 +42,8 @@ payload=$(cat <<JSON
   "match": $(json_str "$match"),
   "body": $(json_str "$body"),
   "kind": $(json_str "$kind"),
-  "agent_session": $(json_str "${CLAUDE_SESSION_ID:-}")
+  "agent_session": $(json_str "${CLAUDE_SESSION_ID:-}"),
+  "created_at": $(json_str "$at")
 }
 JSON
 )

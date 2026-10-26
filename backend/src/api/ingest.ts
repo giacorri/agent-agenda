@@ -3,7 +3,7 @@ import { newId } from '../ids';
 import { insertTask, insertNote, findTaskByMatch, findAnyTaskByMatch, setSteps, updateTask, getTask, addDep, absorbClientTags } from '../db';
 import { hiddenScopeTag, reminderDefaults } from '../config-db';
 import { parseWhen } from '../parse/when';
-import { cleanPeople } from './tasks';
+import { cleanPeople, noteTime } from './tasks';
 import type { IngestPayload, StepsIngestPayload, ClosingIngestPayload, PersonalIngestPayload, LinkIngestPayload, Task, WsMessage, Note } from '../types';
 
 // Fallback personal tag when no hidden scope is configured (preserves the
@@ -115,11 +115,13 @@ export async function handleIngestRequest(
 export async function handleNoteIngestRequest(
   req: Request, db: Database, broadcast: Broadcast
 ): Promise<Response> {
-  type NoteIngest = { match: string; body: string; kind?: 'text' | 'file' | 'link'; agent_session?: string };
+  type NoteIngest = { match: string; body: string; kind?: 'text' | 'file' | 'link'; agent_session?: string; created_at?: string };
   let payload: NoteIngest;
   try { payload = await req.json() as NoteIngest; }
   catch { return json({ error: 'invalid JSON' }, 400); }
   if (!payload.match || !payload.body) return json({ error: 'match and body required' }, 400);
+  const at = noteTime(payload.created_at);
+  if (!at) return json({ error: 'created_at must be YYYY-MM-DD or an ISO datetime' }, 400);
 
   const task = findTaskByMatch(db, payload.match);
   if (!task) return json({ error: `no pending task matched "${payload.match}"` }, 404);
@@ -129,7 +131,7 @@ export async function handleNoteIngestRequest(
     task_id: task.id,
     body: payload.body,
     kind: payload.kind ?? 'text',
-    created_at: new Date().toISOString(),
+    created_at: at,
     agent_session: payload.agent_session ?? null,
   };
   insertNote(db, n);

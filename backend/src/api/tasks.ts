@@ -12,6 +12,16 @@ const json = (body: unknown, status = 200) =>
 
 function nowIso(): string { return new Date().toISOString(); }
 
+// A note's time as sent by the client: absent = now; a date (YYYY-MM-DD) or a full
+// ISO datetime otherwise. A bare date lands at midday UTC so it stays on that day in
+// any European timezone. Returns null for anything else.
+export function noteTime(raw: unknown): string | null {
+  if (raw == null || raw === '') return nowIso();
+  if (typeof raw !== 'string' || !/^\d{4}-\d{2}-\d{2}/.test(raw)) return null;
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T12:00:00Z` : raw);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 // A task's status changed → its dependents' `blocked_by` (and thus their blocked
 // state) may have flipped. Re-broadcast each so open clients update badges live.
 function propagateToDependents(db: Database, id: string, broadcast: Broadcast): void {
@@ -209,12 +219,14 @@ export async function handleTasksRequest(
     if (!body || typeof body.body !== 'string' || !body.body) {
       return json({ error: 'body required' }, 400);
     }
+    const at = noteTime(body.created_at);
+    if (!at) return json({ error: 'created_at must be YYYY-MM-DD or an ISO datetime' }, 400);
     const n: Note = {
       id: newId(),
       task_id: id,
       body: body.body,
       kind: body.kind ?? 'text',
-      created_at: nowIso(),
+      created_at: at,
       agent_session: body.agent_session ?? null,
     };
     insertNote(db, n);
@@ -230,9 +242,13 @@ export async function handleTasksRequest(
     if (!note || note.task_id !== id) return json({ error: 'note not found' }, 404);
 
     if (method === 'PATCH') {
-      const patch = await readJson(req) as { body?: string } | null;
-      if (!patch || typeof patch.body !== 'string' || !patch.body) return json({ error: 'body required' }, 400);
-      updateNote(db, noteId, patch.body);
+      const patch = await readJson(req) as { body?: string; created_at?: string } | null;
+      const hasBody = typeof patch?.body === 'string' && patch.body !== '';
+      const rawAt = patch?.created_at || undefined;
+      if (!patch || (!hasBody && !rawAt)) return json({ error: 'body or created_at required' }, 400);
+      const at = rawAt === undefined ? undefined : noteTime(rawAt);
+      if (at === null) return json({ error: 'created_at must be YYYY-MM-DD or an ISO datetime' }, 400);
+      updateNote(db, noteId, { body: hasBody ? patch.body : undefined, created_at: at });
       const updated = getNote(db, noteId)!;
       broadcast({ type: 'note.updated', task_id: id, note: updated });
       return json(updated);

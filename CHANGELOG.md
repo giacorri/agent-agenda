@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the step and update the plan when it worked on the followed task without writing back.
 - **Status icons** across the task drawer and the focus view, with a spinner for
   in-progress tasks.
+- **Dated notes:** a note can carry the date it happened (`created_at` on create and
+  edit, `--at` in `add-note.sh` / `edit-note.sh`), so rewritten or backfilled notes
+  keep their place in the timeline.
 
 ### Changed
 

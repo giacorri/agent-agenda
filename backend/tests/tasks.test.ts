@@ -208,3 +208,32 @@ test('PATCH people replaces the list; a non-array is rejected', async () => {
   expect(bad.status).toBe(400);
   expect(getTask(db, 'T1')?.people).toEqual(['jordan', 'Maria Rossi']);
 });
+
+test('a note can carry its own date, and notes list in date order', async () => {
+  insertTask(db, sample());
+  const late = await (await call('POST', '/api/tasks/T1/notes', { body: 'second' })).json();
+  const early = await call('POST', '/api/tasks/T1/notes', { body: 'first', created_at: '2026-01-05' });
+  expect(early.status).toBe(201);
+  expect((await early.json()).created_at).toBe('2026-01-05T12:00:00.000Z');
+  const notes = await (await call('GET', '/api/tasks/T1/notes')).json();
+  expect(notes.map((n: { body: string }) => n.body)).toEqual(['first', 'second']);
+
+  const moved = await call('PATCH', `/api/tasks/T1/notes/${late.id}`, { created_at: '2025-12-01T08:00:00Z' });
+  expect(moved.status).toBe(200);
+  expect((await moved.json()).body).toBe('second');
+  const again = await (await call('GET', '/api/tasks/T1/notes')).json();
+  expect(again.map((n: { body: string }) => n.body)).toEqual(['second', 'first']);
+});
+
+test('a malformed note date is rejected', async () => {
+  insertTask(db, sample());
+  expect((await call('POST', '/api/tasks/T1/notes', { body: 'x', created_at: 'yesterday' })).status).toBe(400);
+  expect((await call('POST', '/api/tasks/T1/notes', { body: 'x', created_at: '2026-13-45' })).status).toBe(400);
+});
+
+test('editing a note body with an empty date keeps its date', async () => {
+  insertTask(db, sample());
+  const n = await (await call('POST', '/api/tasks/T1/notes', { body: 'a', created_at: '2026-01-05' })).json();
+  const res = await (await call('PATCH', `/api/tasks/T1/notes/${n.id}`, { body: 'b', created_at: '' })).json();
+  expect(res.created_at).toBe('2026-01-05T12:00:00.000Z');
+});

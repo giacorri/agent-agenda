@@ -136,6 +136,8 @@ export interface AddNotePayload {
   body: string;
   kind?: NoteKind;
   agent_session?: string;
+  // When it happened, if not now: lets a rewritten or backfilled note keep its real date.
+  created_at?: string;
 }
 
 export type WsMessage =
