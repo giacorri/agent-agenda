@@ -39,9 +39,9 @@ verdict=$(tail -n 2000 "$transcript" | jq -rs '
 
 title=$(curl -sf --max-time 2 "${AGENDA_URL:-http://localhost:4010}/api/tasks/$id" | jq -r '.title // empty')
 if [[ "${AGENDA_LANG:-}" == it ]]; then
-  # Built apart: bash mangles multibyte quotes inside ${var:+...} under some locales.
+  # Braces matter: without them bash can read the multibyte » as part of the name.
   label=""
-  [[ -n "$title" ]] && label="«$title» "
+  [[ -n "$title" ]] && label="«${title}» "
   reason="Il pannello dell'agenda segue il task $label($id) e in questo turno non è stato scritto niente. Se è stato fatto un passo, annotalo ora: una nota breve per fatto (note-progress) e togli il passo finito dal piano (set-next-steps). Se su quel task non è cambiato niente, rispondi che non c'è niente da annotare e fermati."
 else
   reason="The agenda focus pane follows task ${title:+\"$title\" }($id), and this turn wrote nothing back to it. If a step got done here, log it now: one short note per fact (note-progress) and drop the finished step from the plan (set-next-steps). If nothing on that task moved, reply that there is nothing to log and stop."
