@@ -61,14 +61,15 @@ notes, one `add-note.sh` call each. Never a list, never a paragraph.
 - Bad: "Registry token `acme-pull` created (scope map `acme-read`, read-only on the 15
   installer images). Password in the vault. The CLI printed it in a warning in the
   terminal: stays local, no issue."
-- Good: "Created the registry token for the customer install; password in the vault."
+- Good: "Created the registry token `acme-pull` for the installer images."
 
 - Bad: "Re-checked the machine: database reachable (port 1436), internal DNS ok,
   certificate `site.pfx` in `/home/svc/certs` (local user's home), Docker empty."
 - Good: "Checked the machine: database, DNS and certificate are ready."
 
-What the second half of each bad note carries — paths, ports, account and vault
-names, why the CLI behaved as it did — is detail. It belongs in the task description,
+Keep the name of the thing itself (`acme-pull`): it is what the reader will search
+for. Everything around it — where the password went, paths, ports, scopes, why the
+CLI behaved as it did — is detail. It belongs in the task description,
 the repo docs or the vault item, not in the timeline. Leave it out.
 
 Only a decision or a blocker may take a second line, for the *why* in a few words:
@@ -87,7 +88,7 @@ create a task with `add-to-agenda`.
   commands ran, which gate passed or which agent did it.
 - **No dates in the text.** The timeline shows each note's time; "26/10 —" or
   "today" duplicates it.
-- **No ids, paths, ports, hashes or log lines** unless the thing has no other name.
+- **No paths, ports, hashes or log lines.** The name of the thing itself stays.
 - **At most one reference, at the end** (`repo#PR98`), as an extra for whoever wants
   the detail. Refs are unqualified when the task's tag names the repo (`#413`,
   `PR#413`), never in backticks: only bare text auto-links.
