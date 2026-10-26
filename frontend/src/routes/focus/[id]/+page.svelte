@@ -24,9 +24,6 @@
   let next = $state<string | null>(null);
   let striking = $state(false);
   let journal = $state<HTMLElement | null>(null);
-  let summaryOpen = $state(false);
-  let summaryEl = $state<HTMLElement | null>(null);
-  let clamped = $state(false);
 
   const id = $derived(page.params.id ?? '');
   const repo = $derived(task ? taskRepo(task, $config) : null);
@@ -74,11 +71,7 @@
     return () => { off(); clearInterval(poll); };
   });
 
-  $effect(() => { if (id) { task = null; next = null; summaryOpen = false; load(); } });
-  $effect(() => {
-    task?.summary;
-    if (summaryEl && !summaryOpen) clamped = summaryEl.scrollHeight > summaryEl.clientHeight + 1;
-  });
+  $effect(() => { if (id) { task = null; next = null; load(); } });
 </script>
 
 <svelte:head><title>{task?.title ?? 'agenda'}</title></svelte:head>
@@ -109,8 +102,7 @@
         <div class="blocked"><Icon name="lock" size={12} />{m.td_blocked_by()}: {task.blocked_by.map((d) => d.title).join(', ')}</div>
       {/if}
       {#if task.summary}
-        <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-        <div class="summary md" class:clamped class:open={summaryOpen} bind:this={summaryEl} onclick={(e) => { if (clamped && !(e.target as HTMLElement).closest('a')) summaryOpen = !summaryOpen; }}>{@html renderMarkdown(task.summary, repo, $config)}</div>
+        <div class="summary md">{@html renderMarkdown(task.summary, repo, $config)}</div>
       {/if}
     </header>
 
@@ -176,12 +168,7 @@
   .open:hover { color: var(--text-primary); }
   h1 { font-size: 19px; line-height: 1.25; font-weight: 650; }
   .who { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 13px; }
-  /* Clamped with a fade so a cut description reads as cut; click toggles it open. */
-  .summary {
-    color: var(--text-secondary); font-size: 13px; max-height: 6em; overflow: hidden;
-  }
-  .summary.clamped { cursor: pointer; mask-image: linear-gradient(to bottom, #000 60%, transparent); }
-  .summary.open { max-height: 40vh; overflow-y: auto; mask-image: none; }
+  .summary { color: var(--text-secondary); font-size: 13px; max-height: 35vh; overflow-y: auto; }
 
   .journal {
     flex: 1; min-height: 0; overflow-y: auto; list-style: none; display: flex; flex-direction: column;
