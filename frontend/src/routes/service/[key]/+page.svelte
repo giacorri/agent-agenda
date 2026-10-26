@@ -23,7 +23,7 @@
   const matched = $derived(($tasks as Task[]).filter(t => $scopeFilter(t) && $searchFilter(t) && t.services.includes(key)));
   const open = $derived(matched.filter(t => isOpen(t) && !isOverdue(t)).sort(byDue));
   const done = $derived(matched.filter(t => t.status === 'done').sort(byDueDesc));
-  const missed = $derived(matched.filter(isOverdue).sort(byDueDesc));
+  const missed = $derived(matched.filter((t) => isOverdue(t)).sort(byDueDesc));
 
   const byDue = cmpDue;
   const byDueDesc = (a: Task, b: Task) => cmpDue(b, a);
