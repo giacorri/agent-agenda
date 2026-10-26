@@ -97,7 +97,7 @@ docker compose up -d --build
 ```
 
 Release notes are in [CHANGELOG.md](CHANGELOG.md). To stay on a release instead of
-`main`, check out its tag (`git checkout v0.2.0`) before rebuilding.
+`main`, check out its tag (`git checkout v0.3.0`) before rebuilding.
 
 To look around with demo data instead of an empty agenda, see
 [Development](#development).
