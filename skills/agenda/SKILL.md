@@ -79,7 +79,8 @@ If the work is already tracked in agenda:
 - Do **not** create a duplicate task.
 - Continue using the same task id for notes, steps, closing and done.
 - When a step is completed, add one note with `note-progress`, then rewrite the
-  remaining plan with `set-next-steps`.
+  remaining plan with `set-next-steps`. Intermediate work inside a step (agents
+  launched, PR opened, review or fix rounds, CI) gets no note.
 - When the plan changes, rewrite all remaining steps with `set-next-steps`; it is
   a full replace.
 - As soon as the topic is **de-facto closed** — our part done, what remains is on
@@ -125,7 +126,8 @@ The safe sequence is:
 4. Summarize past notes and remaining steps
 5. When you actually start working on it (not when you only read or summarize it),
    mark it `set-status.sh <id> in_progress` if it is still `pending`
-6. Continue the work and write milestones back as they happen
+6. Continue the work and write milestones back as they happen (step closed,
+   decision that changes the plan, blocker hit or cleared — nothing else)
 
 If work stops with the task waiting on someone else, leave it `in_progress`; put it
 back to `pending` only when nobody is working on it anymore.

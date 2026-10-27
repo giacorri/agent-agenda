@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Stop hook: the focus pane only shows what the agent writes. If this session's turn
-# did work on the task the pane follows but wrote nothing back to the agenda, block the
-# stop once and ask the agent to log the step (note) and update the plan (steps).
+# closed something on the task the pane follows (merged a PR, closed an issue, cut a
+# release) but wrote nothing back to the agenda, block the stop once and ask the agent
+# to log the step (note) and update the plan (steps).
+#
+# Ordinary work (edits, commands, opening a PR, review rounds, CI) never triggers it:
+# notes are for milestones only, and a reminder on every working turn made agents log
+# each intermediate pass just to satisfy it.
 #
 # Same opt-in as cmux-focus.sh: a no-op unless AGENDA_CMUX_FOCUS=1 inside cmux.
 # AGENDA_LANG=it writes the reminder in Italian (the user sees it); default English.
@@ -21,7 +26,7 @@ session=$(jq -r '.session_id // empty' <<<"$input")
 transcript=$(jq -r '.transcript_path // empty' <<<"$input")
 [[ -f "$transcript" ]] || exit 0
 
-# Tool calls since the last real user prompt: did the turn change anything, and did
+# Tool calls since the last real user prompt: did the turn close something, and did
 # it write to the agenda?
 verdict=$(tail -n 2000 "$transcript" | jq -rs '
   [.[] | select(.type == "user" or .type == "assistant")] as $m
@@ -32,7 +37,8 @@ verdict=$(tail -n 2000 "$transcript" | jq -rs '
       [$m[$i + 1:][] | select(.type == "assistant") | .message.content[]? | select(.type == "tool_use")] as $t
       | if any($t[]; .name == "Bash" and (.input.command // "" | test("add-note|set-steps|set-closing|done-task|set-status|edit-note|del-note|add-task")))
         then "wrote"
-        elif any($t[]; .name | test("^(Bash|Edit|Write|MultiEdit|NotebookEdit)$")) then "remind"
+        elif any($t[]; .name == "Bash" and (.input.command // "" | test("gh +(pr +merge|issue +close|release +create)")))
+        then "remind"
         else "skip" end
     end' 2>/dev/null)
 [[ "$verdict" == remind ]] || exit 0
@@ -42,8 +48,8 @@ if [[ "${AGENDA_LANG:-}" == it ]]; then
   # Braces matter: without them bash can read the multibyte » as part of the name.
   label=""
   [[ -n "$title" ]] && label="«${title}» "
-  reason="Il pannello dell'agenda segue il task $label($id) e in questo turno non è stato scritto niente. Se è stato fatto un passo, annotalo ora: una nota per fatto, una frase sola di massimo 20 parole sul risultato, mai il riassunto del giro (note-progress) e togli il passo finito dal piano (set-next-steps). Se su quel task non è cambiato niente, rispondi che non c'è niente da annotare e fermati."
+  reason="Il pannello dell'agenda segue il task $label($id): questo turno ha unito una PR, chiuso una issue o pubblicato una release, e in agenda non è stato scritto niente. Annota solo se si è chiuso un passo del piano, l'utente ha deciso qualcosa che cambia il piano, o è comparso o si è risolto un blocco: una frase sola di massimo 20 parole sul risultato (note-progress), e togli il passo finito dal piano (set-next-steps). Non si annotano agenti lanciati, PR aperte, giri di revisione o di correzione, CI, commenti: in quel caso, come quasi sempre, rispondi che non c'è niente da annotare e fermati."
 else
-  reason="The agenda focus pane follows task ${title:+\"$title\" }($id), and this turn wrote nothing back to it. If a step got done here, log it now: one note per fact, a single sentence of at most 20 words on the outcome, never a recap of the turn (note-progress) and drop the finished step from the plan (set-next-steps). If nothing on that task moved, reply that there is nothing to log and stop."
+  reason="The agenda focus pane follows task ${title:+\"$title\" }($id): this turn merged a PR, closed an issue or cut a release, and wrote nothing back. Log a note only if a plan step closed, the user made a decision that changes the plan, or a blocker appeared or cleared: a single sentence of at most 20 words on the outcome (note-progress), and drop the finished step from the plan (set-next-steps). Agents launched, PRs opened, review or fix rounds, CI, comments are never logged: then, as almost always, reply that there is nothing to log and stop."
 fi
 jq -n --arg r "$reason" '{decision: "block", reason: $r}'

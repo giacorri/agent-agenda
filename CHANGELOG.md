@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Agenda reminder (cmux focus pane):** a Stop hook asks the agent, once per turn, to log
-  the step and update the plan when it worked on the followed task without writing back.
+  the step and update the plan when it merged a PR, closed an issue or cut a release on
+  the followed task without writing back.
 - **Status icons** across the task drawer and the focus view, with a spinner for
   in-progress tasks.
 - **Dated notes:** a note can carry the date it happened (`created_at` on create and
@@ -21,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Note style:** `note-progress` and `tidy-agenda` now keep one note per fact; no more
   bulleted notes that collect several steps.
+- **Milestones only:** notes are written only when a plan step closes, a decision changes
+  the plan, or a blocker appears or clears; agents launched, PRs opened, review rounds
+  and CI no longer get a note.
 
 ## [0.3.0] - 2026-10-26
 

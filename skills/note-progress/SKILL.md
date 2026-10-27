@@ -2,9 +2,10 @@
 name: note-progress
 description: |
   Append ONE timeline note (what happened) to a task in the connected agent-agenda,
-  the same turn a milestone happens: a decision made, a blocker hit or cleared, a PR
-  opened or merged, an issue closed, a step done, a deploy. Forward plan:
-  set-next-steps. New task: add-to-agenda.
+  only for a milestone: a plan step closed, a user decision that changes the plan, a
+  blocker hit or cleared. Never for intermediate work inside a step (agents launched,
+  PR opened, review or fix rounds, CI). Forward plan: set-next-steps. New task:
+  add-to-agenda.
 ---
 
 # note-progress — append one timeline note
@@ -20,19 +21,34 @@ current state at a glance.
 
 This skill appends one note via `add-note.sh`, which posts to `POST /api/ingest/note`.
 
-## When to use (one milestone = one note, same turn)
+## When to use (milestones only, same turn)
 
-Log a note immediately when one of these touches a tracked task:
+Write a note **only** when one of these happens on a tracked task:
 
-- a PR opened or merged that belongs to the task;
-- an issue closed that was in the plan;
-- a decision made (a choice between alternatives, a spec written);
-- a blocker hit, moved, or cleared;
-- a deploy / cutover step completed;
-- a step from the plan done;
-- a material follow-up acquired ("owner found", "date fixed").
+- **a step of the plan (`steps`) closes** — a PR merged, an issue closed, a deploy
+  done, whatever the step asked for;
+- **the user makes a decision that changes the plan** (a choice between
+  alternatives, a scope cut, a new direction);
+- **a blocker appears or clears** — something that stops the task, not a hiccup you
+  fix in the same turn.
 
-Do it the same turn the milestone happens — not at end of task, not at end of
+Everything else is intermediate work inside a step and gets **no note**:
+
+- agents or workers launched, handed off, restarted;
+- a PR opened but not merged, review requested, review rounds, fix rounds;
+- CI running, red-then-fixed, or green;
+- comments, descriptions or branches updated;
+- "started", "in progress", "second pass done".
+
+A PR enters the timeline when it is merged or when it closes the step, not before.
+In most turns the right answer is **nothing to log**.
+
+- Bad: three review rounds on the same PR → "Opened repo#400, review running",
+  "Review asked for changes", "Second round done", "Third round started" (4 notes).
+- Good: the same three rounds → zero notes; then, when the step closes, one note:
+  "Merged repo#400: the cross-build no longer blocks the deploy."
+
+Write it the same turn the milestone happens — not at end of task, not at end of
 session. Do NOT create a duplicate task; if the topic is already on the agenda,
 note it.
 
@@ -45,8 +61,8 @@ Before writing, test: *if someone reads only this note — no chat, no other not
 without opening the PR/issue — do they understand what happened?* To pass, the
 note must NAME the thing, not point at it:
 
-- Bad: "PR opened" → which PR? doing what? where?
-- Good: "Opened repo#400: fixes the cross-build that blocked the deploy. In review."
+- Bad: "Merged the PR" → which PR? doing what? where?
+- Good: "Merged repo#400: fixes the cross-build that blocked the deploy."
 - Bad: "Merged" → what?
 - Good: "Merged repo#259 (squash): aligned the cleanup callers. Only repo#200 left."
 

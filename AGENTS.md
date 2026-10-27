@@ -131,9 +131,11 @@ another finishes — not to express mere ordering preference.
 - **Create a task** (`add-task.sh`) when there is a *new* actionable item. Give it a
   `--when` only if it has a real deadline. First check whether one already exists
   (`list-tasks.sh` / match) — if so, do **not** create a duplicate; add a note to the existing task.
-- **Add a note** (`add-note.sh`) when something *happened* on a tracked task: a step
-  finished, a decision was made, a blocker appeared or cleared, a PR opened, a deploy
-  ran. One note per event. The timeline is the record of the past.
+- **Add a note** (`add-note.sh`) only for a milestone on a tracked task: a plan step
+  closed (a PR merged, an issue closed, a deploy done), a decision that changes the
+  plan, a blocker appeared or cleared. One note per event. Intermediate work inside a
+  step — agents launched, a PR opened, review or fix rounds, CI — gets no note.
+  The timeline is the record of the past.
 - **Update steps** (`set-steps.sh`) when the *plan ahead* changed: a step is done, a
   new one emerged, the order shifted. This **replaces the whole list** — pass every
   step you still want to keep, in order. (To log a step you just finished, write a
@@ -170,20 +172,20 @@ to the matching endpoint — automatically, in the same turn the event happens:
 
 | Moment | What to write | Endpoint / script |
 | ------ | ------------- | ----------------- |
-| **Task start** — you pick up a task | A note: you've started, plus the initial plan as steps | note + steps |
+| **Task start** — you pick up a task | The initial plan as steps; status `in_progress` | steps |
 | **Decision** — you choose an approach | A note recording the decision and why | note (`add-note.sh`) |
 | **Milestone done** — a step completes | A note for what got done; drop that step from the plan | note + steps |
 | **Blocker** — you're stuck / waiting | A note naming the blocker and what would unblock it | note (`add-note.sh`) |
-| **PR opened** — you push a change up | A note with the action + the PR ref | note (`add-note.sh`) |
+| **Intermediate work** — agents launched, PR opened, review or fix rounds, CI | Nothing: the PR enters the timeline when it is merged or closes the step | — |
 | **Conclude** — the topic is closed, or de-facto closed | The closing handoff; mark the task done once it is actually over | closing + `done-task.sh` |
 
 **Note shape.** One line, lead with a verb: `<verb> <what>`. Optionally a short *why*,
 and a *ref* (a configured shorthand like `web#123`, or a URL). Examples:
 
 ```
-Opened the PR for the cache fix. web#412
+Merged the cache fix: stale prices no longer show. web#412
 Blocked: need the staging deploy token to continue.
-Started: triage the failing import. Plan posted as steps.
+Chose the nightly export over the live sync: the API has no paging.
 ```
 
 ## The human↔agent memory loop
