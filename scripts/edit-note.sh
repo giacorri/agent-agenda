@@ -38,6 +38,18 @@ if [[ -z "$match" || ( -z "$body" && -z "$at" ) || ( -z "$note_id" && "$last" -n
   exit 2
 fi
 
+# A note is one fact in one sentence (skills/note-progress). Agents pushed by the Stop
+# hook tend to dump a recap of the whole turn instead; refuse it here, where no prompt
+# can be skipped.
+if [[ -n "$body" ]]; then
+words=$(wc -w <<<"$body" | tr -d ' ')
+if (( words > 40 )); then
+  echo "note refused: $words words, max 40. One note = one fact in one sentence (~20 words);" >&2
+  echo "several facts -> one add-note call each; details, paths and the turn recap stay out." >&2
+  exit 2
+fi
+fi
+
 read -r task_id resolved_note < <(
   AGENDA_URL="$AGENDA_URL" MATCH="$match" NOTE_ID="$note_id" WANT_LAST="$last" python3 - <<'PY'
 import os, json, urllib.request, sys

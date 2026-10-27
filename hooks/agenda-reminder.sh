@@ -42,8 +42,8 @@ if [[ "${AGENDA_LANG:-}" == it ]]; then
   # Braces matter: without them bash can read the multibyte » as part of the name.
   label=""
   [[ -n "$title" ]] && label="«${title}» "
-  reason="Il pannello dell'agenda segue il task $label($id) e in questo turno non è stato scritto niente. Se è stato fatto un passo, annotalo ora: una nota breve per fatto (note-progress) e togli il passo finito dal piano (set-next-steps). Se su quel task non è cambiato niente, rispondi che non c'è niente da annotare e fermati."
+  reason="Il pannello dell'agenda segue il task $label($id) e in questo turno non è stato scritto niente. Se è stato fatto un passo, annotalo ora: una nota per fatto, una frase sola di massimo 20 parole sul risultato, mai il riassunto del giro (note-progress) e togli il passo finito dal piano (set-next-steps). Se su quel task non è cambiato niente, rispondi che non c'è niente da annotare e fermati."
 else
-  reason="The agenda focus pane follows task ${title:+\"$title\" }($id), and this turn wrote nothing back to it. If a step got done here, log it now: one short note per fact (note-progress) and drop the finished step from the plan (set-next-steps). If nothing on that task moved, reply that there is nothing to log and stop."
+  reason="The agenda focus pane follows task ${title:+\"$title\" }($id), and this turn wrote nothing back to it. If a step got done here, log it now: one note per fact, a single sentence of at most 20 words on the outcome, never a recap of the turn (note-progress) and drop the finished step from the plan (set-next-steps). If nothing on that task moved, reply that there is nothing to log and stop."
 fi
 jq -n --arg r "$reason" '{decision: "block", reason: $r}'

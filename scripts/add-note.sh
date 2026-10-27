@@ -35,6 +35,16 @@ if [[ -z "$match" || -z "$body" ]]; then
   exit 2
 fi
 
+# A note is one fact in one sentence (skills/note-progress). Agents pushed by the Stop
+# hook tend to dump a recap of the whole turn instead; refuse it here, where no prompt
+# can be skipped.
+words=$(wc -w <<<"$body" | tr -d ' ')
+if (( words > 40 )); then
+  echo "note refused: $words words, max 40. One note = one fact in one sentence (~20 words);" >&2
+  echo "several facts -> one add-note call each; details, paths and the turn recap stay out." >&2
+  exit 2
+fi
+
 json_str() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]), end="")' "$1"; }
 
 payload=$(cat <<JSON
