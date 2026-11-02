@@ -33,3 +33,4 @@ test-results/
 
 # Local scope icons (user config assets, not shipped)
 frontend/static/scope-*.png
+__pycache__/

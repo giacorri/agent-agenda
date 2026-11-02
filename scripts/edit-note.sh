@@ -48,6 +48,9 @@ if (( words > 40 )); then
   echo "several facts -> one add-note call each; details, paths and the turn recap stay out." >&2
   exit 2
 fi
+here=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")" && pwd)
+# No date in the text: the agenda shows each note's own timestamp (--at to redate).
+python3 "$here/note_date.py" check "$body" || exit 2
 fi
 
 read -r task_id resolved_note < <(

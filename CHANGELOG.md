@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **No date in note text:** `add-note.sh` and `edit-note.sh` refuse a body that starts
+  with a date (`2/11:`, `31/10 evening,`, `2026-11-02 —`), since the agenda already shows
+  it; `strip-note-dates.sh` removes such prefixes from existing notes (preview first,
+  redates the note when the text named another day). Covered by `scripts/test-note-guards.sh` in CI.
 - **Agenda reminder (cmux focus pane):** a Stop hook asks the agent, once per turn, to log
   the step and update the plan when it merged a PR, closed an issue or cut a release on
   the followed task without writing back.

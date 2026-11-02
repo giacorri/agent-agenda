@@ -105,8 +105,9 @@ create a task with `add-to-agenda`.
 
 - **Outcome, not process.** "The importer now accepts semicolon CSV files", not which
   commands ran, which gate passed or which agent did it.
-- **No dates in the text.** The timeline shows each note's time; "26/10 —" or
-  "today" duplicates it. Logging something that happened earlier? Date the note
+- **No dates in the text.** The agenda puts the date next to each note; "26/10 —" or
+  "today" duplicates it, and `add-note.sh` / `edit-note.sh` refuse a body that starts
+  with one. Logging something that happened earlier? Date the note
   itself: `add-note.sh … --at 2026-09-10` (or `edit-note.sh … --at` to fix one).
 - **No paths, ports, hashes or log lines.** The name of the thing itself stays.
 - **At most one reference, at the end** (`repo#PR98`), as an extra for whoever wants

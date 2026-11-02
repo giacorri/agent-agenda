@@ -13,7 +13,9 @@ description: |
 `agent-agenda` is the shared memory between the user and agents. It tracks both
 work and personal tasks through the same API. A task has three separate planes:
 
-- **notes** = past: what already happened.
+- **notes** = past: what already happened. The agenda shows each note's date, so the
+  text never starts with one (`add-note.sh` refuses "2/11: …"); an event from another
+  day takes `--at YYYY-MM-DD`.
 - **steps** = future: what is still planned.
 - **closing** = handoff: what to tell whoever asked, once the topic is closed —
   what works now, what they still have to do, what is left open.

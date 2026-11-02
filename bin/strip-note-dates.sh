@@ -1,0 +1,1 @@
+../scripts/strip-note-dates.sh

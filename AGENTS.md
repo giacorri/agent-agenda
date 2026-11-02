@@ -81,6 +81,7 @@ Mental model: **notes = the past, steps = the future, closing = the handoff.**
 | Add a timeline note (progress; `--at` dates a past event) | `add-note.sh` | `POST /api/ingest/note` (`created_at` optional) |
 | Attach a local file as a note | `attach-file.sh` | `POST /api/ingest/note` |
 | Fix or remove a note | `edit-note.sh` / `del-note.sh` | `PATCH` / `DELETE /api/tasks/:id/notes/:noteId` |
+| Drop dates written at the start of notes (preview, `--apply`) | `strip-note-dates.sh` | `PATCH /api/tasks/:id/notes/:noteId` |
 | Replace the forward plan (next steps) | `set-steps.sh` | `POST /api/ingest/steps` |
 | Write the closing / handoff message | `set-closing.sh` | `POST /api/ingest/closing` |
 | Toggle a task personal | `set-personal.sh` | `POST /api/ingest/personal` |

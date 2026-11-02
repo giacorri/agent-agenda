@@ -45,6 +45,10 @@ if (( words > 40 )); then
   exit 2
 fi
 
+# No date in the text: the agenda shows each note's own timestamp (--at to backdate).
+here=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")" && pwd)
+python3 "$here/note_date.py" check "$body" || exit 2
+
 json_str() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]), end="")' "$1"; }
 
 payload=$(cat <<JSON

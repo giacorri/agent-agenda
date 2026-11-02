@@ -21,6 +21,12 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run test
 
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/test-note-guards.sh
+
   frontend:
     runs-on: ubuntu-latest
     defaults:

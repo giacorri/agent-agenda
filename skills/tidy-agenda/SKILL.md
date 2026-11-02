@@ -69,7 +69,9 @@ Tidy it note by note — rewrite each note worth keeping as **one short past-ten
 sentence, straight to the point, understandable on its own** (`edit-note.sh`), delete
 the noise (`del-note.sh`), fold near-duplicates into one. Never collapse the timeline
 into a single bulleted note: it loses the order and the dates. Editing a body keeps the
-note's date; if a note carries its date in the text, move it out with `--at`. A kept note reads like:
+note's date; if a note carries its date in the text, move it out with `--at`.
+`strip-note-dates.sh` does that on every task at once (preview by default, `--apply`
+to write; take the snapshot first). A kept note reads like:
 
 - `Fixed the double import with a check on existing codes (web#123)`
 - `Made the importer accept semicolon-separated CSV files (api#126)`
