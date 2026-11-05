@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Versioned plugin:** `plugin.json` and the marketplace entry carry the release
+  version, so installs follow releases instead of every commit; with marketplace
+  auto-update on, a release reaches new sessions without manual commands.
+- **One release command:** `scripts/release.sh <version>` bumps every version spot,
+  dates the changelog, tags, pushes, creates the GitHub release and rebuilds a running
+  local Docker stack. CI checks that the versions agree (`scripts/check-versions.sh`).
+
+### Changed
+
+- **Agenda reminder:** the end-of-turn reminder is a single line; the criteria for
+  what deserves a note stay in the `note-progress` skill.
+
 ## [0.4.0] - 2026-11-02
 
 ### Added

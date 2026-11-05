@@ -135,3 +135,11 @@ This uses `@sveltejs/adapter-node` and emits a Node/Bun-runnable server under
 - New UI strings go in `frontend/messages/en.json` (and `it.json`); see
   [docs/i18n.md](docs/i18n.md).
 - Explain the *why* in the PR description, not just the *what*.
+
+## Releasing
+
+1. Add your changes under `## [Unreleased]` in `CHANGELOG.md` as part of each PR.
+2. On a clean, up-to-date `main`, run `scripts/release.sh <major.minor.patch>`.
+3. It bumps `plugin.json`, `marketplace.json` and both `package.json`, dates the changelog section, commits, tags `v<version>`, pushes and creates the GitHub release.
+4. If the Docker stack runs from that checkout it is rebuilt (`docker compose up -d --build`); otherwise run that yourself.
+5. CI runs `scripts/check-versions.sh`, which fails when the four versions differ.
