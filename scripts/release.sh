@@ -17,9 +17,11 @@ die() { echo "release: $*" >&2; exit 1; }
 
 [[ $(git branch --show-current) == main ]] || die "not on main"
 [[ -z $(git status --porcelain) ]] || die "working tree not clean"
-git fetch -q origin main --tags
+git fetch -q origin main
 [[ $(git rev-parse HEAD) == $(git rev-parse origin/main) ]] || die "main differs from origin/main"
-git rev-parse -q --verify "refs/tags/$tag" >/dev/null && die "tag $tag already exists"
+# Ask the remote: a stale local tag must neither block nor hide a published one.
+git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null && die "tag $tag already exists on origin"
+git rev-parse -q --verify "refs/tags/$tag" >/dev/null && die "local tag $tag exists; delete it first"
 
 old=$(python3 -c 'import json;print(json.load(open("backend/package.json"))["version"])')
 python3 - "$old" "$new" <<'EOF' || die "$new is not greater than $old"
