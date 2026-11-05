@@ -48,8 +48,9 @@ if [[ "${AGENDA_LANG:-}" == it ]]; then
   # Braces matter: without them bash can read the multibyte » as part of the name.
   label=""
   [[ -n "$title" ]] && label="«${title}» "
-  reason="Il pannello dell'agenda segue il task $label($id): questo turno ha unito una PR, chiuso una issue o pubblicato una release, e in agenda non è stato scritto niente. Annota solo se si è chiuso un passo del piano, l'utente ha deciso qualcosa che cambia il piano, o è comparso o si è risolto un blocco: una frase sola di massimo 20 parole sul risultato (note-progress), e togli il passo finito dal piano (set-next-steps). Non si annotano agenti lanciati, PR aperte, giri di revisione o di correzione, CI, commenti: in quel caso, come quasi sempre, rispondi che non c'è niente da annotare e fermati."
+  # The user sees this text in the chat: one line. The criteria live in note-progress.
+  reason="Agenda $label($id): una PR unita, una issue chiusa o una release senza nota. Se ha chiuso un passo del piano: note-progress e set-next-steps. Altrimenti niente, e fermati."
 else
-  reason="The agenda focus pane follows task ${title:+\"$title\" }($id): this turn merged a PR, closed an issue or cut a release, and wrote nothing back. Log a note only if a plan step closed, the user made a decision that changes the plan, or a blocker appeared or cleared: a single sentence of at most 20 words on the outcome (note-progress), and drop the finished step from the plan (set-next-steps). Agents launched, PRs opened, review or fix rounds, CI, comments are never logged: then, as almost always, reply that there is nothing to log and stop."
+  reason="Agenda ${title:+\"$title\" }($id): a merged PR, closed issue or release with no note. If it closed a plan step: note-progress and set-next-steps. Otherwise nothing, and stop."
 fi
 jq -n --arg r "$reason" '{decision: "block", reason: $r}'
