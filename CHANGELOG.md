@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Hook paths with spaces:** the plugin hooks quote `${CLAUDE_PLUGIN_ROOT}`, so they
+  still run when the plugin is installed under a path that contains a space.
+
 ## [0.5.0] - 2026-11-05
 
 ### Added
