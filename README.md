@@ -155,10 +155,12 @@ claude plugin install agent-agenda@agent-agenda
 
 The skills show up as `agent-agenda:<name>` (for example `/agent-agenda:agenda`), and
 the helper scripts are on the Bash tool's `PATH` while the plugin is enabled, so
-nothing goes into `~/.local/bin`. The plugin has no pinned version: it tracks this
-repository's commits. Pull updates with `claude plugin marketplace update agent-agenda`
-followed by `claude plugin update agent-agenda@agent-agenda`, or turn on auto-update for
-the marketplace in `/plugin`. To hack on the skills, add the marketplace from a local
+nothing goes into `~/.local/bin`. The plugin carries the release version, so an install
+changes only when a new release is cut, not on every commit. To get releases without
+running anything, turn on auto-update for the marketplace (`/plugin` → Marketplaces, or
+`"autoUpdate": true` on its `extraKnownMarketplaces` entry in `settings.json`); otherwise
+run `claude plugin marketplace update agent-agenda` and
+`claude plugin update agent-agenda@agent-agenda`. To hack on the skills, add the marketplace from a local
 clone instead (`claude plugin marketplace add ./agent-agenda`): the plugin then loads in
 place and every edit applies at the next session or `/reload-plugins`.
 
