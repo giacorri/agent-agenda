@@ -152,3 +152,43 @@ test('POST /api/ingest/link 404s when a match fails', async () => {
   const res = await link({ blocked: 'deploy web', blocked_by: 'ghost' });
   expect(res.status).toBe(404);
 });
+
+test('an open task on the same topic stops the create with 409 and the similar tasks', async () => {
+  const first = await (await call({
+    title: 'Casa delle skill di orchestrazione',
+    summary: 'Le skill che orchestrano gli agenti sono divise: lavora vive in brega, staffetta nel plugin extra del framework. Una regola per i worker Codex va scritta due volte.',
+    tags: ['orchestrazione', 'codex'],
+  })).json();
+  const res = await call({
+    title: 'Sorveglianza degli agenti',
+    summary: 'Le skill di orchestrazione (capo, lavora, staffetta, brega) controllano gli agenti in tre modi diversi e non vedono i worker Codex fermi. Si unifica tutto nel framework.',
+    tags: ['orchestrazione', 'codex'],
+  });
+  expect(res.status).toBe(409);
+  const body = await res.json();
+  expect(body.similar.map((s: { id: string }) => s.id)).toEqual([first.id]);
+  expect(listTasks(db).length).toBe(1);
+});
+
+test('a near-identical title is a possible duplicate even without a summary', async () => {
+  await call({ title: 'Import: combinazioni asset-task' });
+  expect((await call({ title: 'Import: combinazioni asset-task mancanti' })).status).toBe(409);
+});
+
+test('force: true creates the task despite a similar open one', async () => {
+  await call({ title: 'Import: combinazioni asset-task' });
+  expect((await call({ title: 'Import: combinazioni asset-task mancanti', force: true })).status).toBe(201);
+  expect(listTasks(db).length).toBe(2);
+});
+
+test('closed tasks and tasks for another client are not duplicates', async () => {
+  insertTask(db, sample({ id: 'D', title: 'Import: combinazioni asset-task', status: 'done' }));
+  expect((await call({ title: 'Import: combinazioni asset-task mancanti' })).status).toBe(201);
+  await call({ title: 'Sperlari: installazione on-prem', client: 'sperlari' });
+  expect((await call({ title: 'COMEL: installazione on-prem', client: 'comel' })).status).toBe(201);
+});
+
+test('unrelated open tasks do not trigger the check', async () => {
+  await call({ title: 'Rotate the database password', tags: ['security'] });
+  expect((await call({ title: 'Plan the team offsite', tags: ['security'] })).status).toBe(201);
+});

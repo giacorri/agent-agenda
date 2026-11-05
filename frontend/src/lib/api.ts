@@ -51,7 +51,8 @@ export const api = {
     j(fetch(`${API}/api/ingest`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
+      // A person typing in the form sees the agenda already: the duplicate check is for agents.
+      body: JSON.stringify({ ...input, force: true }),
     })),
   get: (id: string): Promise<TaskWithNotes> =>
     j(fetch(`${API}/api/tasks/${id}`)),

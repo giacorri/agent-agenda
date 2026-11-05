@@ -4,6 +4,7 @@ import { insertTask, insertNote, findTaskByMatch, findAnyTaskByMatch, setSteps, 
 import { hiddenScopeTag, reminderDefaults } from '../config-db';
 import { parseWhen } from '../parse/when';
 import { cleanPeople, noteTime } from './tasks';
+import { findSimilarOpen } from '../duplicates';
 import type { IngestPayload, StepsIngestPayload, ClosingIngestPayload, PersonalIngestPayload, LinkIngestPayload, Task, WsMessage, Note } from '../types';
 
 // Fallback personal tag when no hidden scope is configured (preserves the
@@ -53,6 +54,13 @@ export async function handleIngestRequest(
     }
   }
   const norm = absorbClientTags(db, tags, payload.client?.trim() || null);
+
+  // An agent that did not search first gets the likely duplicates back instead of a
+  // second task; `force: true` creates it anyway once it has checked they differ.
+  if (payload.force !== true) {
+    const similar = findSimilarOpen(db, { title: payload.title, summary: payload.summary ?? null, tags: norm.tags, client: norm.client });
+    if (similar.length) return json({ error: 'possible duplicate of an open task', similar }, 409);
+  }
 
   const t: Task = {
     id: newId(),

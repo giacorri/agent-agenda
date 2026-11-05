@@ -6,7 +6,7 @@
 #            [--service <category> --service <category>]... [--tag x]... \
 #            [--body "long text..."] [--remind-min N] [--requester "Name"] \
 #            [--person <key>]... [--client "Acme"] [--personal] \
-#            [--blocks "keyword"] [--blocked-by "keyword"]
+#            [--blocks "keyword"] [--blocked-by "keyword"] [--new]
 #
 # Conventions for agents calling this:
 #   - title:    3-6 words, simple language, active voice, no technical components.
@@ -38,6 +38,11 @@
 #               --blocks makes the matched task wait on this NEW one. Unmatched
 #               keyword → link skipped, task still created.
 #
+#   - new:      skip the possible-duplicate check. Without it, an open task that looks
+#               like the same topic stops the create: the script lists it and exits 3.
+#               Then add a note to that task instead, or rerun with --new if the topic
+#               really is different.
+#
 # The frontend shows title + summary on the card; body + next-steps live in the drawer.
 #
 # Output: the created task as JSON on stdout, and on stderr one "link: <url>" line —
@@ -57,6 +62,7 @@ remind=""
 requester=""
 client=""
 personal="false"
+force="false"
 blocks=""
 blocked_by=""
 tags=()
@@ -77,6 +83,7 @@ while [[ $# -gt 0 ]]; do
     --person)      people+=("$2"); shift 2 ;;
     --client)      client="$2"; shift 2 ;;
     --personal)    personal="true"; shift ;;
+    --new)         force="true"; shift ;;
     --blocks)      blocks="$2"; shift 2 ;;
     --blocked-by)  blocked_by="$2"; shift 2 ;;
     --remind-min)  remind="$2"; shift 2 ;;
@@ -160,6 +167,7 @@ ${when_field}  "services": $services_j,
   "tags": $tags_j,
   "people": $people_j,
   "personal": $personal,
+  "force": $force,
   "agent_session": $session_j,
   "agent_cwd": $cwd_j$remind_field$requester_field$client_field$deps_field
 }
@@ -172,6 +180,20 @@ response=$(curl -sS -w "\n%{http_code}" -X POST "$AGENDA_URL/api/ingest" \
 
 http_code=$(printf '%s' "$response" | tail -n1)
 payload=$(printf '%s' "$response" | sed '$d')
+
+if [[ "$http_code" == "409" ]] && printf '%s' "$payload" | grep -q '"similar"'; then
+  {
+    echo "add-task: possible duplicate, nothing created. Open tasks on the same topic:"
+    printf '%s' "$payload" | python3 -c '
+import json, sys
+ui = sys.argv[1]
+for s in json.load(sys.stdin)["similar"]:
+    print("  %s · %s · %s (%s) · %s/task/%s" % (s["id"], s["status"], s["title"], s["reason"], ui, s["id"]))
+' "$AGENDA_UI_URL"
+    echo "Add a note to one of them (add-note.sh), or rerun with --new if the topic is different."
+  } >&2
+  exit 3
+fi
 
 if [[ "$http_code" != "201" ]]; then
   echo "add-task failed ($http_code): $payload" >&2

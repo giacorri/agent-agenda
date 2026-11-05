@@ -109,6 +109,9 @@ export interface IngestPayload {
   // the matched task. Unmatched keyword → link skipped, task still created.
   blocks?: string;
   blocked_by?: string;
+  // Skip the possible-duplicate check (409 with `similar`): the caller has looked
+  // at the similar open tasks and this one is a different topic.
+  force?: boolean;
 }
 
 export interface StepsIngestPayload {
