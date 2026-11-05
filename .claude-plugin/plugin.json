@@ -1,6 +1,6 @@
 {
   "name": "agent-agenda",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Skills and shell helpers to read and write a running agent-agenda: capture tasks, log progress, plan next steps, write closing messages.",
   "author": { "name": "agent-agenda contributors" },
   "homepage": "https://github.com/giacorri/agent-agenda",
