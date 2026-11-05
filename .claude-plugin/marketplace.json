@@ -6,7 +6,7 @@
     {
       "name": "agent-agenda",
       "source": "./",
-      "version": "0.5.1",
+      "version": "0.6.0",
       "description": "Skills and shell helpers for a running agent-agenda."
     }
   ]
