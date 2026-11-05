@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Possible-duplicate check:** creating a task while an open one looks like the same
+  topic (similar title, or many words of title and summary in common, or shared tags)
+  returns `409` with the similar tasks and creates nothing. `add-task.sh` lists them
+  and exits `3`; `--new` (API: `force: true`) creates it anyway. Tasks for different
+  clients and closed tasks never count; the web form is not checked.
+
 ## [0.5.1] - 2026-11-05
 
 ### Fixed

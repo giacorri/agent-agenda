@@ -132,6 +132,8 @@ another finishes — not to express mere ordering preference.
 - **Create a task** (`add-task.sh`) when there is a *new* actionable item. Give it a
   `--when` only if it has a real deadline. First check whether one already exists
   (`list-tasks.sh` / match) — if so, do **not** create a duplicate; add a note to the existing task.
+  The server checks too: `add-task.sh` exits `3` listing the open tasks that look like the
+  same topic. Use one of them; `--new` only when the topic is really different.
 - **Add a note** (`add-note.sh`) only for a milestone on a tracked task: a plan step
   closed (a PR merged, an issue closed, a deploy done), a decision that changes the
   plan, a blocker appeared or cleared. One note per event. Intermediate work inside a

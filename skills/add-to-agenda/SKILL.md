@@ -185,6 +185,10 @@ The helpers come with the plugin and are on PATH while it is enabled. Without it
 them from the agenda repo's `scripts/`, or post to `$AGENDA_URL/api/ingest` (default
 `http://localhost:4010`).
 
+**Exit 3 = possible duplicate, nothing created.** The script lists the open tasks that
+look like the same topic. Read them (`show-task.sh <id>`): same topic → add a note there
+(`note-progress`) and update its steps; really different → rerun with `--new`.
+
 ## After running
 
 Read the output (a JSON task with its `id` and `due_at`), THEN reply — do not

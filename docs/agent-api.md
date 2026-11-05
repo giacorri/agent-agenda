@@ -116,7 +116,8 @@ deadline: it never fires a reminder. An unparseable `when` returns `400`.
   "agent_session": "string",    // optional
   "agent_cwd": "string",        // optional
   "blocks": "keyword",          // optional; matched task waits on THIS new task
-  "blocked_by": "keyword"       // optional; new task waits on the matched task
+  "blocked_by": "keyword",      // optional; new task waits on the matched task
+  "force": true                  // optional; skip the possible-duplicate check
 }
 ```
 
@@ -128,6 +129,12 @@ deadline: it never fires a reminder. An unparseable `when` returns `400`.
 - A tag equal to a configured client key is moved into `client` when `client` is empty.
 - `blocks` / `blocked_by` create a [blocking link](#blocking-links-dependencies) against
   an existing open task. An unmatched keyword is ignored and the task is still created.
+- **Possible duplicate → `409`**, nothing created, unless `force: true`. An open task
+  counts as similar when the titles share most of their words, when title and summary
+  share many words, or when they share some words and at least two tags (the hidden-scope
+  tag excluded). A task for a different `client` never counts. Body:
+  `{ "error": "possible duplicate of an open task", "similar": [{ "id", "title", "status", "reason" }] }`
+  (at most three). The web form sends `force: true`.
 
 ```bash
 add-task.sh --title "Review the import fix" --when "tomorrow 10am" \
