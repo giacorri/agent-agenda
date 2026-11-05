@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/cmux-focus.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/cmux-focus.sh\"",
             "timeout": 10
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/agenda-reminder.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/agenda-reminder.sh\"",
             "timeout": 10
           }
         ]
