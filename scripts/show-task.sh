@@ -5,8 +5,8 @@
 #   show-task <task-id|match>      # resolve to a task, print task + notes + steps
 #   show-task <match> --json       # raw task JSON (includes notes) instead of the readable view
 #
-# <match> = a ULID id, or a substring of an OPEN task's title/tag/service — pending, in_progress
-# or snoozed (earliest due wins, same rule as add-note.sh). Use it to read a task back before
+# <match> = a ULID id, or a substring of an OPEN task's title/tag/service — pending, in_progress,
+# workaround or snoozed (earliest due wins, same rule as add-note.sh). Use it to read a task back before
 # adding a possible duplicate, or to review its progress (notes = what happened; steps = plan).
 # The readable view carries a "link:" line — the deep link that opens the web app on this task
 # (origin from $AGENDA_UI_URL, default http://localhost:4011; $AGENDA_URL is the API).
@@ -36,7 +36,7 @@ if [[ -z "$match" ]]; then
 fi
 
 # Resolve <match> to a task id. A ULID is "01"-prefixed and 26 chars; anything else is treated
-# as a substring matched against any OPEN task (pending/in_progress/snoozed, earliest due first),
+# as a substring matched against any OPEN task (pending/in_progress/workaround/snoozed, earliest due first),
 # mirroring the backend's findTaskByMatch — so an in_progress task is reachable by keyword too.
 resolve_id() {
   local m="$1"

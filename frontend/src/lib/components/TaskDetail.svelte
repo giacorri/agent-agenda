@@ -110,7 +110,7 @@
 
   // Custom status picker (button + popover) replacing the bare <select>.
   let statusMenu = $state(false);
-  const STATUSES = ['pending', 'in_progress', 'snoozed', 'done', 'shelved'] as const;
+  const STATUSES = ['pending', 'in_progress', 'workaround', 'snoozed', 'done', 'shelved'] as const;
   // Suggestions for the services field come from the configured categories.
   const knownServices = $derived($categories.map((c) => c.key));
 
@@ -954,6 +954,7 @@
   .status-btn:hover { background: color-mix(in srgb, var(--st, var(--text-secondary)) 30%, transparent); }
   .status-btn.st-pending { --st: var(--link); }
   .status-btn.st-in_progress { --st: var(--accent); }
+  .status-btn.st-workaround { --st: var(--orange); }
   .status-btn.st-snoozed { --st: var(--amber); }
   .status-btn.st-done { --st: var(--green); }
   .status-btn.st-shelved { --st: var(--red); }
@@ -966,6 +967,7 @@
   .st-ico { display: inline-flex; }
   .st-pending { color: var(--text-muted); }
   .st-in_progress { color: var(--accent); }
+  .st-workaround { color: var(--orange); }
   .st-snoozed { color: var(--amber); }
   .st-done { color: var(--green); }
   .st-shelved { color: var(--red); }

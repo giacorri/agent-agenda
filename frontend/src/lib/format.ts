@@ -80,7 +80,7 @@ const BUCKET_AGE_LABELS: Record<string, () => string> = {
 export const bucketAgeLabel = (key: string): string => (BUCKET_AGE_LABELS[key] ?? (() => bucketLabel(key)))();
 
 const STATUS_LABELS: Record<string, () => string> = {
-  pending: m.status_pending, in_progress: m.status_in_progress,
+  pending: m.status_pending, in_progress: m.status_in_progress, workaround: m.status_workaround,
   snoozed: m.status_snoozed, done: m.status_done, shelved: m.status_shelved,
 };
 export const statusLabel = (status: string): string => (STATUS_LABELS[status] ?? (() => status))();

@@ -5,7 +5,7 @@
 #   set-steps <task-id|match> --step "..." [--step "..."]...
 #   set-steps <task-id|match> --clear          # empties the plan
 #
-# <match> = ULID id, or a substring/tag/service of an open task (pending/in_progress/snoozed; earliest due date wins).
+# <match> = ULID id, or a substring/tag/service of an open task (pending/in_progress/workaround/snoozed; earliest due date wins).
 # This REPLACES the list (it is not append). Pass every step you want to keep, in order.
 # Steps are the forward plan shown in the right column; when a step is done remove it here
 # and log it as a note (add-note.sh). Each step is short, plain text, markdown ok.

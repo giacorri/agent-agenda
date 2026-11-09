@@ -4,7 +4,7 @@
 # Usage:
 #   add-note <task-id|match> --body "text..."  [--kind text|file|link] [--at YYYY-MM-DD]
 #
-# <match> can be a ULID id, or a substring/tag that matches an open task (pending/in_progress/snoozed)
+# <match> can be a ULID id, or a substring/tag that matches an open task (pending/in_progress/workaround/snoozed)
 # (the earliest due date wins). --at dates a note that happened earlier (default: now).
 
 set -euo pipefail

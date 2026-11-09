@@ -49,7 +49,7 @@ resolve_id() {
 import json, os, sys
 m = os.environ["MATCH"].lower()
 for t in json.load(sys.stdin):  # already ordered by due_at ASC
-    if t.get("status") not in ("pending", "in_progress", "snoozed"): continue
+    if t.get("status") not in ("pending", "in_progress", "workaround", "snoozed"): continue
     hay = [t.get("title","")] + t.get("tags",[]) + t.get("services",[])
     if any(m in (h or "").lower() for h in hay):
         print(t["id"]); break

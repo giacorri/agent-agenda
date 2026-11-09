@@ -66,7 +66,7 @@ A task is the unit of shared state. Its fields, and how an agent should use them
 | `people`     | Other people tagged on the task (involved, to inform). | Distinct from `requester`. Configured person keys (or free-form names); `add-task.sh --person <key>`, repeatable. |
 | `client`     | The client/company the work is for. | Free text; matching a configured client gives it a sidebar row and a `/client` page. **Work only** — omit on personal tasks and on internal work with no customer. |
 | `priority`   | Integer (lower = more important; default `2`). | Set only when it matters. |
-| `status`     | `pending`, `in_progress`, `done`, `snoozed` or `shelved`. | Mark done with `done-task.sh`. `shelved` = dropped on purpose but kept for the record (set it from the UI or `PATCH`). Overdue is computed, not a status. |
+| `status`     | `pending`, `in_progress`, `workaround`, `done`, `snoozed` or `shelved`. | Mark done with `done-task.sh`. `workaround` = a temporary fix holds but the real fix is still pending: the task stays open until the real fix lands, then `done`. `shelved` = dropped on purpose but kept for the record (set it from the UI or `PATCH`). Overdue is computed, not a status. |
 | `when`       | **Natural-language** due time. | e.g. `"tomorrow"`, `"in 1 minute"`, `"friday 10am"`. Parsed server-side at create time. **Optional**: omit it for a "general" task with no deadline — it fires no reminders and lists in the General group, ordered by insertion date. Use a `when` only when the task truly has a deadline. |
 
 Mental model: **notes = the past, steps = the future, closing = the handoff.**
@@ -100,7 +100,7 @@ Mental model: **notes = the past, steps = the future, closing = the handoff.**
 
 Endpoints that act on an existing task take a **`match`**: a task **id**, a substring
 of the title, or an exact tag / category key. For notes, steps and links it resolves
-against **open** tasks (pending, in_progress, snoozed) and picks the one due soonest;
+against **open** tasks (pending, in_progress, workaround, snoozed) and picks the one due soonest;
 for closing and personal it searches **any** status (a closing is usually written on a
 task already marked done) and picks the newest. When in doubt, match by **id**.
 
@@ -110,7 +110,7 @@ A task can depend on one or more **prerequisites**. While any prerequisite is st
 open (not `done` or `shelved`), the dependent task is **blocked**: it stays visible (with a lock badge) but
 fires **no reminders**, and reactivates on its own the moment its last prerequisite
 is closed. `blocked` is derived from the links, never a stored status; the stored
-statuses (`pending`/`in_progress`/`done`/`snoozed`/`shelved`) are unchanged.
+statuses (`pending`/`in_progress`/`workaround`/`done`/`snoozed`/`shelved`) are unchanged.
 
 - **At create time:** `add-task.sh --blocked-by "<keyword>"` makes the new task wait
   on an existing OPEN task; `--blocks "<keyword>"` makes an existing task wait on the

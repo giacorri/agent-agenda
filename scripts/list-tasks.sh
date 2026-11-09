@@ -3,7 +3,7 @@
 #
 # Usage:
 #   list-tasks                                  # all tasks
-#   list-tasks --status pending                 # one status (pending|in_progress|done|snoozed|shelved|all)
+#   list-tasks --status pending                 # one status (pending|in_progress|workaround|done|snoozed|shelved|all)
 #   list-tasks --tag security                   # tasks carrying a tag
 #   list-tasks --service web                    # tasks in a configured category
 #   list-tasks --from 2025-01-01 --to 2025-02-01  # due-date window (ISO; --to is exclusive)

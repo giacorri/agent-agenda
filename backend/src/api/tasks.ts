@@ -36,7 +36,7 @@ async function readJson(req: Request): Promise<unknown> {
   try { return await req.json(); } catch { return null; }
 }
 
-const VALID_STATUS = new Set<TaskStatus>(['pending', 'in_progress', 'done', 'snoozed', 'shelved']);
+const VALID_STATUS = new Set<TaskStatus>(['pending', 'in_progress', 'workaround', 'done', 'snoozed', 'shelved']);
 const isStrArray = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === 'string');
 // Trim, drop blanks and case-insensitive duplicates, keeping the first spelling.
 export function cleanPeople(list: string[]): string[] {

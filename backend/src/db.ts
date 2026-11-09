@@ -421,12 +421,12 @@ export function findTaskByMatch(db: Database, match: string): Task | null {
     return getTask(db, match);
   }
   const lower = match.toLowerCase();
-  // Match any OPEN task (not just pending) so an agent resuming an in_progress
-  // or snoozed task by keyword still finds it; done tasks are excluded.
+  // Match any OPEN task (not just pending) so an agent resuming an in_progress,
+  // workaround or snoozed task by keyword still finds it; done tasks are excluded.
   const rows = db.query(
     `SELECT ${TASK_COLS}
      FROM tasks
-     WHERE status IN ('pending','in_progress','snoozed')
+     WHERE status IN ('pending','in_progress','workaround','snoozed')
        AND (LOWER(title) LIKE ? OR LOWER(tags) LIKE ? OR LOWER(services) LIKE ?)
      ORDER BY due_at = '' ASC, due_at ASC LIMIT 1`
   ).all(`%${lower}%`, `%"${lower}"%`, `%"${lower}"%`) as Row[];

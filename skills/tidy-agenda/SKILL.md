@@ -23,7 +23,7 @@ condensing deletes notes, and the dump is the only undo:
 ```bash
 : "${AGENDA_URL:=http://localhost:4010}"
 SCRATCH="${SCRATCH:-$(mktemp -d)}"; mkdir -p "$SCRATCH/agenda-backup"
-for id in $(curl -s "$AGENDA_URL/api/tasks" | jq -r '.[]|select(.status=="pending" or .status=="in_progress")|.id'); do
+for id in $(curl -s "$AGENDA_URL/api/tasks" | jq -r '.[]|select(.status=="pending" or .status=="in_progress" or .status=="workaround")|.id'); do
   curl -s "$AGENDA_URL/api/tasks/$id" > "$SCRATCH/agenda-backup/$id.json"
 done
 ```
@@ -99,7 +99,7 @@ anything touching production, customers or shared infra.
 ## API cheat-sheet
 
 - `PATCH /api/tasks/:id` — `title`, `summary`, `due_at` (ISO or `""`), `status`
-  (`pending|in_progress|done|snoozed|shelved`)
+  (`pending|in_progress|workaround|done|snoozed|shelved`)
 - `POST /api/tasks/:id/done`
 - `POST /api/tasks/:id/notes` `{body, kind}` · `PATCH|DELETE /api/tasks/:id/notes/:noteId`
 - `POST /api/ingest/steps` `{match: <id>, steps: [...]}` — full replace
