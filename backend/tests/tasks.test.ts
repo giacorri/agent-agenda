@@ -89,6 +89,15 @@ test('PATCH accepts the shelved status', async () => {
   expect(getTask(db, 'T1')?.status).toBe('shelved');
 });
 
+test('PATCH accepts the workaround status and the task stays in the open list', async () => {
+  insertTask(db, sample());
+  const res = await call('PATCH', '/api/tasks/T1', { status: 'workaround' });
+  expect(res.status).toBe(200);
+  expect(getTask(db, 'T1')?.status).toBe('workaround');
+  const open = await (await call('GET', '/api/tasks?status=workaround')).json();
+  expect(open.map((t: { id: string }) => t.id)).toEqual(['T1']);
+});
+
 test('PATCH maps the deprecated accantonato alias to shelved', async () => {
   insertTask(db, sample());
   const res = await call('PATCH', '/api/tasks/T1', { status: 'accantonato' });

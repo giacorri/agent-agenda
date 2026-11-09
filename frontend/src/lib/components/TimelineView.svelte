@@ -176,7 +176,7 @@
   {@const w = whenParts(it, overdueSec || showDate)}
   <li>
     <div class="row" role="button" tabindex="0" style={`--c:${taskColor(t, $config)}`}
-      class:late={it.late} class:prog={t.status === 'in_progress'} class:snz={t.status === 'snoozed'} class:blocked
+      class:late={it.late} class:prog={t.status === 'in_progress'} class:wka={t.status === 'workaround'} class:snz={t.status === 'snoozed'} class:blocked
       onclick={(e) => open(e, t.id)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(e, t.id); } }}>
       <span class="st" title={statusLabel(t.status)} aria-label={statusLabel(t.status)}></span>
       {#if !undated}
@@ -188,7 +188,7 @@
           {#if !undated && w.main}<span class="when-inline">{w.main}{w.sub ? ` ${w.sub}` : ''}</span>{/if}
           {#if overdueSec}<span class="flag late">{m.tl_days_late({ count: daysLate(it.due, now) })}</span>
           {:else if it.late}<span class="flag late">{m.overdue()}</span>{/if}
-          {#if t.status === 'in_progress' || t.status === 'snoozed'}<span class="flag {t.status}">{statusLabel(t.status)}</span>{/if}
+          {#if t.status === 'in_progress' || t.status === 'workaround' || t.status === 'snoozed'}<span class="flag {t.status}">{statusLabel(t.status)}</span>{/if}
           {#if blocked}<span class="flag blocked" title={(t.blocked_by ?? []).map((b) => b.title).join(', ')}><Icon name="lock" size={11} /> {m.tc_blocked()}</span>{/if}
           {#each cats.slice(0, 2) as key (key)}
             {@const meta = categoryMeta(key, $config)}
@@ -282,9 +282,10 @@
   .row:focus { outline: none; }
   .row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-  /* Status glyph: ring = to do, half-filled = in progress, dashed = snoozed, red = late. */
+  /* Status glyph: ring = to do, half-filled = in progress (orange = workaround), dashed = snoozed, red = late. */
   .st { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--text-muted); justify-self: center; }
   .row.prog .st { border-color: var(--accent); background: conic-gradient(var(--accent) 0 50%, transparent 50% 100%); }
+  .row.wka .st { border-color: var(--orange); background: conic-gradient(var(--orange) 0 50%, transparent 50% 100%); }
   .row.snz .st { border-style: dashed; border-color: var(--amber); }
   .row.late .st { border-color: var(--red); }
 
@@ -300,6 +301,7 @@
   .flag { font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
   .flag.late { color: var(--red); }
   .flag.in_progress { color: var(--accent); }
+  .flag.workaround { color: var(--orange); }
   .flag.snoozed { color: var(--amber); }
   .flag.blocked { color: var(--amber); }
   .cat { display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; border-radius: 999px; text-decoration: none; white-space: nowrap;

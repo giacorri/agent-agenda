@@ -66,6 +66,11 @@ describe('markFor', () => {
     expect(m.leadFrom).toBe(0); // created before the range: clipped to its start
   });
 
+  test('a workaround task keeps its own open mark', () => {
+    const t = task('2026-10-22', { status: 'workaround' });
+    expect(markFor(t, parseDue(t.due_at)!, range, NOW).kind).toBe('workaround');
+  });
+
   test('a timed due is a point at its instant', () => {
     const t = task('2026-10-22T09:30:00+02:00', { status: 'in_progress', created_at: '2026-10-21T10:00:00+02:00' });
     const m = markFor(t, parseDue(t.due_at)!, range, NOW);

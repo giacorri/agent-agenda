@@ -52,7 +52,7 @@
   );
 
   const STATUS_LABEL: Record<TaskStatus, () => string> = {
-    pending: m.status_pending, in_progress: m.status_in_progress,
+    pending: m.status_pending, in_progress: m.status_in_progress, workaround: m.status_workaround,
     snoozed: m.status_snoozed, done: m.status_done, shelved: m.status_shelved,
   };
 
@@ -349,6 +349,7 @@
   .pill { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
   .pill.done { color: var(--green, #6bbf83); background: color-mix(in srgb, var(--green, #6bbf83) 18%, transparent); }
   .pill.in_progress { color: var(--amber, #e0a458); background: color-mix(in srgb, var(--amber, #e0a458) 20%, transparent); }
+  .pill.workaround { color: var(--orange); background: color-mix(in srgb, var(--orange) 20%, transparent); }
   .pill.pending { color: var(--text-muted); background: var(--bg-glass-hover); }
   .pill.snoozed { color: var(--text-muted); background: var(--bg-glass-hover); }
   .ctitle { font-size: 13px; font-weight: 700; color: var(--text-primary); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

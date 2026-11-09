@@ -33,6 +33,7 @@
   "tl_scale_even": "Uniforme",
   "status_pending": "da fare",
   "status_in_progress": "in corso",
+  "status_workaround": "pezzottato",
   "status_snoozed": "rinviato",
   "status_done": "fatto",
   "status_shelved": "accantonato",

@@ -40,7 +40,7 @@ export interface DayGroups {
   undated: Task[];
 }
 
-const OPEN = new Set(['pending', 'in_progress', 'snoozed']);
+const OPEN = new Set(['pending', 'in_progress', 'workaround', 'snoozed']);
 
 // Most pressing first inside a day: priority (lower = more important), then
 // all-day items (they belong to the whole day), then by time, then title.

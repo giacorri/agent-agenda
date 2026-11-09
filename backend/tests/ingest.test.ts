@@ -104,6 +104,11 @@ test('findTaskByMatch resolves an in_progress task (not just pending)', () => {
   expect(findTaskByMatch(db, 'resume')?.id).toBe('A');
 });
 
+test('findTaskByMatch resolves a workaround task (still open)', () => {
+  insertTask(db, sample({ id: 'W', status: 'workaround' }));
+  expect(findTaskByMatch(db, 'resume')?.id).toBe('W');
+});
+
 test('findTaskByMatch ignores done tasks', () => {
   insertTask(db, sample({ id: 'B', status: 'done' }));
   expect(findTaskByMatch(db, 'resume')).toBeNull();
@@ -186,6 +191,13 @@ test('closed tasks and tasks for another client are not duplicates', async () =>
   expect((await call({ title: 'Import: combinazioni asset-task mancanti' })).status).toBe(201);
   await call({ title: 'Sperlari: installazione on-prem', client: 'sperlari' });
   expect((await call({ title: 'COMEL: installazione on-prem', client: 'comel' })).status).toBe(201);
+});
+
+test('a workaround task still counts as open for the duplicate check', async () => {
+  insertTask(db, sample({ id: 'W', title: 'Import: combinazioni asset-task', status: 'workaround' }));
+  const res = await call({ title: 'Import: combinazioni asset-task mancanti' });
+  expect(res.status).toBe(409);
+  expect((await res.json()).similar.map((s: { id: string }) => s.id)).toEqual(['W']);
 });
 
 test('unrelated open tasks do not trigger the check', async () => {

@@ -61,10 +61,11 @@ describe('groupByDay', () => {
       task('2026-10-21', { status: 'done', title: 'done' }),
       task('2026-10-21', { status: 'shelved', title: 'shelved' }),
       task('2026-10-21', { status: 'in_progress', title: 'wip' }),
+      task('2026-10-21', { status: 'workaround', title: 'patched' }),
       task('', { title: 'no date' }),
       task('', { title: 'no date done', status: 'done' }),
     ], NOW);
-    expect(titles(sections[0])).toEqual(['wip']);
+    expect(titles(sections[0]).sort()).toEqual(['patched', 'wip']);
     expect(undated.map((t) => t.title)).toEqual(['no date']);
   });
 
