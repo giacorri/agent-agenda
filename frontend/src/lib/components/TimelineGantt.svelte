@@ -472,6 +472,7 @@
   /* Status glyph, same language as the By day list. */
   .st { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--text-muted); flex: none; }
   .row.progress .st { border-color: var(--accent); background: conic-gradient(var(--accent) 0 50%, transparent 50% 100%); }
+  .row.workaround .st { border-color: var(--orange); background: conic-gradient(var(--orange) 0 50%, transparent 50% 100%); }
   .row.snoozed .st { border-style: dashed; border-color: var(--amber); }
   .row.late .st { border-color: var(--red); }
   .row.done .st { border-color: var(--green); background: var(--green); }
@@ -490,6 +491,7 @@
   .mk.point { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 3px; transform: rotate(45deg); background: var(--c); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45); }
   .mk.point :global(svg) { transform: rotate(-45deg); }
   .row.progress .mk { box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent); }
+  .row.workaround .mk { box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--orange); }
   .row.late .mk { box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--red); }
   .row.snoozed .mk { background: color-mix(in srgb, var(--c) 35%, transparent); outline: 2px dashed var(--amber); outline-offset: 1px; }
   .row.done .mk { background: color-mix(in srgb, var(--green) 75%, transparent); }
@@ -533,6 +535,7 @@
   dd { color: var(--text-primary); }
   dd.late { color: var(--red); }
   dd.progress { color: var(--accent); }
+  dd.workaround { color: var(--orange); }
   dd.snoozed { color: var(--amber); }
   dd.done { color: var(--green); }
 

@@ -6,14 +6,14 @@
 # "what's open and how late am I?" in one shot, so nobody has to hand-roll a JSON filter again.
 #
 # Usage:
-#   agenda-check                 # open tasks (pending + in_progress), overdue first, work + personal
+#   agenda-check                 # open tasks (pending + in_progress + workaround), overdue first, work + personal
 #   agenda-check --overdue       # only the overdue ones
 #   agenda-check --work          # hide personal (tag "personal") tasks
 #   agenda-check --personal      # only personal tasks
 #   agenda-check --upcoming N    # also widen the upcoming window to N days (default 7)
 #   agenda-check --json          # raw JSON of the selected tasks instead of the grouped view
 #
-# "open" = pending or in_progress (the actionable ones). done/snoozed are excluded. A task is
+# "open" = pending, in_progress or workaround (the actionable ones). done/snoozed are excluded. A task is
 # "overdue" when its due_at is in the past. Work vs personal is the "personal" tag convention
 # (set-personal.sh). Sorting and the note/step counts come straight from the API list payload.
 
@@ -79,10 +79,10 @@ def parse(s):
 def is_personal(t):
     return "personal" in (t.get("tags") or [])
 
-# open = actionable: pending or in_progress. done/snoozed drop out.
+# open = actionable: pending, in_progress or workaround. done/snoozed drop out.
 sel = []
 for t in tasks:
-    if t.get("status") not in ("pending", "in_progress"):
+    if t.get("status") not in ("pending", "in_progress", "workaround"):
         continue
     if scope == "work" and is_personal(t):
         continue

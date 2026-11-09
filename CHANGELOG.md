@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`workaround` status** (Italian label *pezzottato*): a temporary fix holds but the real
+  fix is still pending. It is an open status like `in_progress` — listed among open tasks,
+  matched by keyword, counted by the duplicate check and by `agenda-check.sh` — and stays
+  open until the real fix lands, then the task goes to `done`. Orange wrench in the UI;
+  `set-status.sh <id> workaround`.
+
 ## [0.6.0] - 2026-11-05
 
 ### Added

@@ -2,11 +2,13 @@
 # set-status — change the status of a task in agent-agenda
 #
 # Usage:
-#   set-status <task-id|match> <status>   # pending | in_progress | snoozed | shelved | done
+#   set-status <task-id|match> <status>   # pending | in_progress | workaround | snoozed | shelved | done
 #
 # <match> = a ULID id, or a substring of an OPEN task's title/tag/service (earliest due wins,
 # same rule as add-note.sh). Typical use: set-status <match> in_progress when work on a task
-# starts. To close a task use done-task.sh, which also stamps completed_at.
+# starts; set-status <match> workaround when a temporary fix holds but the real fix is still
+# pending (it stays open until the real fix lands, then done). To close a task use done-task.sh,
+# which also stamps completed_at.
 
 set -euo pipefail
 
@@ -44,7 +46,7 @@ resolve_id() {
 import json, os, sys
 m = os.environ["MATCH"].lower()
 for t in json.load(sys.stdin):  # already ordered by due_at ASC
-    if t.get("status") not in ("pending", "in_progress", "snoozed"): continue
+    if t.get("status") not in ("pending", "in_progress", "workaround", "snoozed"): continue
     hay = [t.get("title","")] + t.get("tags",[]) + t.get("services",[])
     if any(m in (h or "").lower() for h in hay):
         print(t["id"]); break

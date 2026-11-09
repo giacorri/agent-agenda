@@ -1,7 +1,7 @@
 import type { Database } from 'bun:sqlite';
 import { listTasks } from './db';
 import { hiddenScopeTag } from './config-db';
-import type { Task } from './types';
+import { OPEN_STATUSES, type Task } from './types';
 
 // Possible-duplicate check for a task about to be created: the open tasks that are
 // probably about the same topic. Agents create tasks from their own wording, so two
@@ -55,7 +55,7 @@ export function findSimilarOpen(db: Database, c: Candidate, limit = 3): Similar[
   const hidden = hiddenScopeTag(db);
   const out: Similar[] = [];
   for (const t of listTasks(db)) {
-    if (!['pending', 'in_progress', 'snoozed'].includes(t.status)) continue;
+    if (!OPEN_STATUSES.includes(t.status)) continue;
     const reason = similarity(c, t, hidden);
     if (reason) out.push({ id: t.id, title: t.title, status: t.status, reason });
     if (out.length >= limit) break;

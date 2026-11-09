@@ -1,7 +1,8 @@
 // 'missed' is NOT a stored status — being overdue is computed from due_at (see isOverdue).
 // 'shelved' is terminal like 'done' but not a completion: keeps the task,
 // stays out of the active agenda, reachable only from the status control.
-export type TaskStatus = 'pending' | 'in_progress' | 'done' | 'snoozed' | 'shelved';
+// 'workaround' is OPEN: a temporary fix holds but the real fix is still pending.
+export type TaskStatus = 'pending' | 'in_progress' | 'workaround' | 'done' | 'snoozed' | 'shelved';
 export type TaskSource = 'agent' | 'user';
 export type NoteKind = 'text' | 'file' | 'link';
 

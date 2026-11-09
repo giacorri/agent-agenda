@@ -73,7 +73,7 @@ export function ganttRange(dues: Date[], now: Date, zoom: Zoom): Range {
 /** Day column the view should scroll to on open and on "Today". */
 export const initialScrollDay = (r: Range, zoom: Zoom): number => Math.max(0, r.today - ZOOM_SPEC[zoom].lead);
 
-export type MarkKind = 'open' | 'progress' | 'snoozed' | 'late' | 'done' | 'shelved';
+export type MarkKind = 'open' | 'progress' | 'workaround' | 'snoozed' | 'late' | 'done' | 'shelved';
 
 export interface Mark {
   kind: MarkKind;
@@ -94,6 +94,7 @@ function kindOf(t: Task, late: boolean): MarkKind {
   if (t.status === 'shelved') return 'shelved';
   if (late) return 'late';
   if (t.status === 'in_progress') return 'progress';
+  if (t.status === 'workaround') return 'workaround';
   if (t.status === 'snoozed') return 'snoozed';
   return 'open';
 }

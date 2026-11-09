@@ -172,6 +172,7 @@
   .status { --st: var(--link); display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px;
     color: var(--st); background: color-mix(in srgb, var(--st) 14%, transparent); border: 1px solid color-mix(in srgb, var(--st) 40%, transparent); }
   .status.s-in_progress { --st: var(--accent); }
+  .status.s-workaround { --st: var(--orange); }
   .status.s-snoozed { --st: var(--amber); }
   .status.s-done { --st: var(--green); }
   .status.s-shelved { --st: var(--red); }

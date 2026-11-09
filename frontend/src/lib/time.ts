@@ -38,7 +38,7 @@ export function relativeTime(iso: string, now: Date = new Date(), loc: string = 
 
 // A task counts as "open" while it isn't done. Used everywhere we list/count active work.
 export const isOpen = (t: Task): boolean =>
-  t.status === 'pending' || t.status === 'in_progress' || t.status === 'snoozed';
+  t.status === 'pending' || t.status === 'in_progress' || t.status === 'workaround' || t.status === 'snoozed';
 
 // Terminal states that leave the active agenda: completed or shelved. Grouped together
 // under the "Closed" section, coloured per status.

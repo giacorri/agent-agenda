@@ -132,6 +132,8 @@ The safe sequence is:
    decision that changes the plan, blocker hit or cleared — nothing else)
 
 If work stops with the task waiting on someone else, leave it `in_progress`; put it
-back to `pending` only when nobody is working on it anymore.
+back to `pending` only when nobody is working on it anymore. When a temporary fix
+holds but the real fix is still pending, set it to `workaround`: it stays open until the
+real fix lands, then `done`.
 
 The agenda is the source of truth for tracked state; chat history is secondary.

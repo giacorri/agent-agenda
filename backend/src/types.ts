@@ -1,7 +1,11 @@
 // 'missed' is NOT a stored status — being overdue is computed from due_at vs now.
 // 'shelved' is terminal like 'done' but not a completion: it keeps the task + notes,
 // stays out of the active agenda, and is only reachable via the status control.
-export type TaskStatus = 'pending' | 'in_progress' | 'done' | 'snoozed' | 'shelved';
+// 'workaround' is OPEN: a temporary fix holds but the real fix is still pending.
+export type TaskStatus = 'pending' | 'in_progress' | 'workaround' | 'done' | 'snoozed' | 'shelved';
+
+// Statuses that still count as open work (listed, matched by keyword, checked for duplicates).
+export const OPEN_STATUSES: readonly TaskStatus[] = ['pending', 'in_progress', 'workaround', 'snoozed'];
 
 // Deprecated input spellings, mapped to the canonical status. 'accantonato' was the
 // original (Italian) name of 'shelved'; stored rows are migrated on startup (db.ts).

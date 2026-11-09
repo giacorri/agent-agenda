@@ -6,7 +6,7 @@
   let { status, size = 14 }: { status: string; size?: number } = $props();
 
   const ICON: Record<string, string> = {
-    pending: 'dot', snoozed: 'clock', done: 'check', shelved: 'package',
+    pending: 'dot', workaround: 'wrench', snoozed: 'clock', done: 'check', shelved: 'package',
   };
 </script>
 

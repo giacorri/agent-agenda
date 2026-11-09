@@ -33,6 +33,7 @@
   "tl_scale_even": "Even",
   "status_pending": "to do",
   "status_in_progress": "in progress",
+  "status_workaround": "workaround",
   "status_snoozed": "snoozed",
   "status_done": "done",
   "status_shelved": "shelved",

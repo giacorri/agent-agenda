@@ -20,7 +20,7 @@ For the operating guide (when to make which write, the memory loop, conventions)
 - **`<match>`:** endpoints that target an existing task take a `match`: a task **id**
   (a 26-character ULID), a case-insensitive substring of the title, or an exact tag /
   category key. Note, steps and link endpoints only match **open** tasks (`pending`,
-  `in_progress`, `snoozed`) and pick the one due soonest. Closing and personal match
+  `in_progress`, `workaround`, `snoozed`) and pick the one due soonest. Closing and personal match
   **any** status, also search `requester`, and pick the most recently created task.
   Prefer the id: it is stable.
 - **CORS:** only matters for browsers. `Access-Control-Allow-Origin` is sent when the
@@ -41,7 +41,7 @@ Returned by the task and ingest endpoints. (Source: `Task` in `backend/src/types
   "summary": "string | null",
   "due_at": "ISO-8601 | ''",    // '' = general task with no deadline
   "remind_at": "ISO-8601 | ''", // due_at minus remind_before_min
-  "status": "pending | in_progress | done | snoozed | shelved",
+  "status": "pending | in_progress | workaround | done | snoozed | shelved",
   "priority": 2,                 // integer, lower = more important, default 2
   "services": ["string"],       // configured category keys
   "tags": ["string"],           // free-form labels
@@ -61,6 +61,8 @@ Returned by the task and ingest endpoints. (Source: `Task` in `backend/src/types
 }
 ```
 
+- `workaround` is open, like `in_progress`: a temporary fix holds but the real fix is still
+  pending. It stays open until the real fix lands, then the task goes to `done`.
 - `shelved` is terminal like `done` but is not a completion: the task and its notes are
   kept and it leaves the active agenda. Only `done` releases a dependent task. (The legacy input
   spelling `accantonato` is accepted and mapped to `shelved`.)
@@ -262,7 +264,7 @@ params are optional:
 
 | Param | Meaning |
 | ----- | ------- |
-| `status` | `pending` \| `in_progress` \| `done` \| `snoozed` \| `shelved` \| `all` |
+| `status` | `pending` \| `in_progress` \| `workaround` \| `done` \| `snoozed` \| `shelved` \| `all` |
 | `from` | lower bound on due time (ISO, inclusive) |
 | `to` | upper bound on due time (ISO, exclusive) |
 | `tag` | filter by a tag |
@@ -320,7 +322,8 @@ Accepted fields: `title`, `summary`, `due_at`, `remind_at` (ISO or `""`), `statu
 `priority`, `tags`, `services`, `steps`, `requester`, `people`, `client`, `closing`,
 `completed_at`. Wrongly typed values return `400`. Script for the title:
 `set-title.sh <id|match> "New title"`; for the status:
-`set-status.sh <id|match> in_progress` (agents set it when work on a task starts).
+`set-status.sh <id|match> in_progress` (agents set it when work on a task starts), or
+`workaround` when a temporary fix holds and the real fix is still pending.
 
 ```bash
 curl -s -X PATCH "$AGENDA_URL/api/tasks/<id>" \
