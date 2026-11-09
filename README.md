@@ -181,7 +181,10 @@ helper scripts. It is off by default and costs nothing outside cmux; turn it on 
 { "env": { "AGENDA_CMUX_FOCUS": "1" } }
 ```
 
-`AGENDA_CMUX_FOCUS_WIDTH` sets the pane width in points (default `400`). Close the pane
+`AGENDA_CMUX_FOCUS_WIDTH` sets the pane width in points (default `400`). `AGENDA_CMUX_PROFILE`
+pins the cmux browser profile the pane opens in; without it cmux uses the last-used profile,
+whose cookies and saved language may differ (a fresh profile shows the UI in the system
+language). Close the pane
 and it stays closed until the agent moves on to another task. Needs `jq`.
 
 The pane is only as current as what the agent writes, so the same switch adds a
