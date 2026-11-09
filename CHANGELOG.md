@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   matched by keyword, counted by the duplicate check and by `agenda-check.sh` — and stays
   open until the real fix lands, then the task goes to `done`. Orange wrench in the UI;
   `set-status.sh <id> workaround`.
+- **`AGENDA_CMUX_PROFILE`**: pins the cmux browser profile of the focus pane, so it keeps
+  its language and cookies instead of following whichever profile was used last.
 
 ## [0.6.0] - 2026-11-05
 

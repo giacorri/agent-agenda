@@ -5,6 +5,7 @@
 # Opt-in: a no-op unless AGENDA_CMUX_FOCUS=1 and the session runs in cmux.
 #   AGENDA_CMUX_FOCUS_WIDTH  pane width in px (default 400)
 #   AGENDA_UI_URL            web app origin (default http://localhost:4011)
+#   AGENDA_CMUX_PROFILE      cmux browser profile for the pane (default: the last-used one)
 #
 # One pane per workspace, reused: touching another task navigates it there. Closing the
 # pane keeps it closed until the agent moves on to a different task.
@@ -40,7 +41,8 @@ fi
 if [[ -n "$surface" ]] && cmux browser --surface "$surface" get-url >/dev/null 2>&1; then
   cmux browser --surface "$surface" navigate "$url" >/dev/null 2>&1
 else
-  created=$(cmux new-pane --type browser --direction right --url "$url" --focus false 2>/dev/null) || exit 0
+  created=$(cmux new-pane --type browser --direction right --url "$url" \
+    ${AGENDA_CMUX_PROFILE:+--profile "$AGENDA_CMUX_PROFILE"} --focus false 2>/dev/null) || exit 0
   surface=$(grep -oE 'surface:[0-9]+' <<<"$created" | head -1)
   [[ -n "$surface" ]] || exit 0
   # Size it from the pane frames, which cmux keeps current even while the workspace is
