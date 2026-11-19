@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Lighter hooks:** `cmux-focus.sh` and `agenda-reminder.sh` filter the event with bash
+  builtins only, so a Bash command or a turn end that does not concern them spawns no
+  process (before: `cat` + `jq`, and more). Behavior for the right event is unchanged;
+  `scripts/test-hooks.sh` covers both cases.
+
 ### Added
 
 - **`workaround` status** (Italian label *pezzottato*): a temporary fix holds but the real
