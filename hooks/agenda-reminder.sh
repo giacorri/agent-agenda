@@ -14,13 +14,16 @@
 [[ "${AGENDA_CMUX_FOCUS:-}" == 1 && -n "${CMUX_WORKSPACE_ID:-}" ]] || exit 0
 command -v jq >/dev/null || exit 0
 
-input=$(cat)
-[[ "$(jq -r '.stop_hook_active // false' <<<"$input")" == true ]] && exit 0
+# Bash builtins only until this session is known to own the followed task: a Stop event
+# fires every turn of every session, and `cat`/`jq` here cost a process each.
+IFS= read -r -d '' input
+[[ "$input" =~ \"stop_hook_active\"[[:space:]]*:[[:space:]]*true ]] && exit 0
 
 state="${TMPDIR:-/tmp}/agent-agenda-focus/$CMUX_WORKSPACE_ID"
 [[ -f "$state" ]] || exit 0
 read -r _ id owner <"$state"
-session=$(jq -r '.session_id // empty' <<<"$input")
+[[ "$input" =~ \"session_id\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]] || exit 0
+session=${BASH_REMATCH[1]}
 [[ -n "$id" && "$owner" == "$session" ]] || exit 0
 
 transcript=$(jq -r '.transcript_path // empty' <<<"$input")

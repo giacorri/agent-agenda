@@ -13,7 +13,10 @@
 [[ "${AGENDA_CMUX_FOCUS:-}" == 1 && -n "${CMUX_WORKSPACE_ID:-}" ]] || exit 0
 command -v cmux >/dev/null && command -v jq >/dev/null || exit 0
 
-input=$(cat)
+# Bash builtins only until the command is known to be an agenda script: this runs after
+# every Bash call of every session, and `cat`/`jq` here cost a process each.
+IFS= read -r -d '' input
+[[ "$input" =~ (show-task|add-task|add-note|edit-note|set-steps|set-closing|set-status|set-title|done-task|snooze-task) ]] || exit 0
 cmd=$(jq -r '.tool_input.command // empty' <<<"$input")
 [[ "$cmd" =~ (show-task|add-task|add-note|edit-note|set-steps|set-closing|set-status|set-title|done-task|snooze-task) ]] || exit 0
 
