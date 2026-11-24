@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Closed tasks are no longer flagged overdue:** the task detail shows no countdown chip
+  for a done or shelved task.
+- **Progress ring at 100%:** the label shrinks so "100%" stays inside the ring.
+
 ## [0.6.1] - 2026-11-19
 
 ### Changed
