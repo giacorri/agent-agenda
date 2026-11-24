@@ -111,7 +111,7 @@
       />
     </svg>
     <div class="ring-center">
-      <b>{pct}%</b>
+      <b class:wide={pct === 100}>{pct}%</b>
       <span>{m.dash_today_count({ done: doneToday, total: totalToday })}</span>
     </div>
   </div>
@@ -190,6 +190,8 @@
   .ring .prog { fill: none; stroke: var(--green); stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 0.4s ease; }
   .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
   .ring-center b { font-size: 19px; color: var(--text-primary); }
+  /* "100%" at 19px touches the 8px stroke inside an 80px ring. */
+  .ring-center b.wide { font-size: 15px; }
   .ring-center span { font-size: 10px; color: var(--text-muted); }
 
   .stats { display: flex; gap: 22px; }

@@ -31,7 +31,8 @@
   // the exact hour is what turns it red.
   const dueIn = $derived.by(() => {
     const parsed = task ? parseDue(task.due_at) : null;
-    if (!task || !parsed) return null;
+    // A closed task has no countdown: "overdue" on finished work reads as a problem.
+    if (!task || !parsed || task.status === 'done' || task.status === 'shelved') return null;
     const due = parsed.at;
     const now = new Date();
     if (isPastDue(task.due_at, now)) return { tone: 'late', label: m.overdue() };
